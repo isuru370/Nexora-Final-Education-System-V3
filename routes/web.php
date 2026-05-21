@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\OrganizerPaymentController;
 use App\Http\Controllers\Admin\SystemUserController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentClassController;
@@ -20,7 +19,6 @@ use App\Http\Controllers\Admin\InstituteIncomeController;
 use App\Http\Controllers\Admin\TeacherSalaryController;
 use App\Http\Controllers\Admin\TemporaryIDCardController;
 use Illuminate\Support\Facades\Route;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -50,34 +48,34 @@ Route::get('/contact_administrator', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('forgot-password')
-    ->group(function () {
+// Route::prefix('forgot-password')
+//     ->group(function () {
 
-        Route::get(
-            '/',
-            [ForgotPasswordController::class, 'showForgotForm']
-        )->name('forgotten_password');
+//         Route::get(
+//             '/',
+//             [ForgotPasswordController::class, 'showForgotForm']
+//         )->name('forgotten_password');
 
-        Route::post(
-            '/send-otp',
-            [ForgotPasswordController::class, 'sendOtp']
-        )->name('forgot_password.send_otp');
+//         Route::post(
+//             '/send-otp',
+//             [ForgotPasswordController::class, 'sendOtp']
+//         )->name('forgot_password.send_otp');
 
-        Route::post(
-            '/verify-otp',
-            [ForgotPasswordController::class, 'verifyOtp']
-        )->name('forgot_password.verify_otp');
+//         Route::post(
+//             '/verify-otp',
+//             [ForgotPasswordController::class, 'verifyOtp']
+//         )->name('forgot_password.verify_otp');
 
-        Route::post(
-            '/resend-otp',
-            [ForgotPasswordController::class, 'resendOtp']
-        )->name('forgot_password.resend_otp');
+//         Route::post(
+//             '/resend-otp',
+//             [ForgotPasswordController::class, 'resendOtp']
+//         )->name('forgot_password.resend_otp');
 
-        Route::post(
-            '/reset',
-            [ForgotPasswordController::class, 'resetPassword']
-        )->name('forgot_password.reset');
-    });
+//         Route::post(
+//             '/reset',
+//             [ForgotPasswordController::class, 'resetPassword']
+//         )->name('forgot_password.reset');
+//     });
 
 
 /*
