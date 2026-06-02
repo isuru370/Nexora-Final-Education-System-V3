@@ -12,6 +12,13 @@ class UpdateStudentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'admission' => $this->boolean('admission'),
+        ]);
+    }
+
     public function rules(): array
     {
         $student = $this->route('student');
@@ -55,7 +62,13 @@ class UpdateStudentRequest extends FormRequest
             'grade_id' => 'required|exists:grades,id',
 
             'class_type' => 'required|in:online,offline,hybrid',
+
             'admission' => 'boolean',
+            'admission_id' => [
+                Rule::requiredIf($this->boolean('admission')),
+                'nullable',
+                'exists:admissions,id',
+            ],
 
             'student_school' => 'nullable|string|max:150',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
@@ -70,6 +83,7 @@ class UpdateStudentRequest extends FormRequest
     {
         return [
             'grade_id.required' => 'Grade is required.',
+            'admission_id.required' => 'Please select an admission type.',
         ];
     }
 }

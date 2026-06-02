@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\AdmissionController;
+use App\Http\Controllers\Admin\AdmissionPaymentController;
 use App\Http\Controllers\Admin\OrganizerPaymentController;
 use App\Http\Controllers\Admin\SystemUserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -13,11 +16,28 @@ use App\Http\Controllers\Admin\ClassCategoryController;
 use App\Http\Controllers\Admin\ClassCategoryFeeController;
 use App\Http\Controllers\Admin\ClassHallController;
 use App\Http\Controllers\Admin\ClassScheduleController;
+use App\Http\Controllers\Admin\ClassTimeTableController;
+use App\Http\Controllers\Admin\DailyReportController;
+use App\Http\Controllers\Admin\DatabaseBackupController;
 use App\Http\Controllers\Admin\ExtraIncomeController;
+use App\Http\Controllers\Admin\ForgotPasswordController;
 use App\Http\Controllers\Admin\ImageUploadController;
+use App\Http\Controllers\Admin\InstituteExpenseController;
 use App\Http\Controllers\Admin\InstituteIncomeController;
+use App\Http\Controllers\Admin\InstitutePaymentReportController;
+use App\Http\Controllers\Admin\InstituteReportController;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\MonthlyReportController;
+use App\Http\Controllers\Admin\StudentIDCardController;
+use App\Http\Controllers\Admin\StudentImageController;
+use App\Http\Controllers\Admin\TeacherReportController;
 use App\Http\Controllers\Admin\TeacherSalaryController;
 use App\Http\Controllers\Admin\TemporaryIDCardController;
+use App\Http\Controllers\Admin\TodayAttendanceController;
+use App\Http\Controllers\Admin\UserPermissionController;
+use App\Http\Controllers\Admin\UserProfileController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,9 +57,40 @@ Route::get('/', function () {
 
 
 Route::get('/contact_administrator', function () {
-
     return view('contact_administrator');
 })->name('contact_administrator');
+
+Route::post('/contact_administrator', function (Request $request) {
+    $validated = $request->validate([
+        'full_name'  => ['required', 'string', 'max:100'],
+        'email'      => ['required', 'email', 'max:150'],
+        'phone'      => ['required', 'string', 'max:20'],
+        'subject'    => ['required', 'string', 'max:150'],
+        'message'    => ['required', 'string', 'max:5000'],
+        'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
+    ]);
+
+    $toEmail = 'info@nexorait.lk';
+
+    Mail::send('emails.contact_administrator', [
+        'data' => $validated,
+    ], function ($mail) use ($validated, $toEmail, $request) {
+        $mail->to($toEmail)
+            ->subject('Contact Form: ' . $validated['subject'])
+            ->replyTo($validated['email'], $validated['full_name']);
+
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+
+            $mail->attach($file->getRealPath(), [
+                'as' => $file->getClientOriginalName(),
+                'mime' => $file->getMimeType(),
+            ]);
+        }
+    });
+
+    return back()->with('success', 'Your message has been sent successfully.');
+})->name('contact_administrator.send');
 
 
 /*
@@ -48,34 +99,16 @@ Route::get('/contact_administrator', function () {
 |--------------------------------------------------------------------------
 */
 
-// Route::prefix('forgot-password')
-//     ->group(function () {
+Route::prefix('forgot-password')
+    ->controller(ForgotPasswordController::class)
+    ->group(function () {
 
-//         Route::get(
-//             '/',
-//             [ForgotPasswordController::class, 'showForgotForm']
-//         )->name('forgotten_password');
-
-//         Route::post(
-//             '/send-otp',
-//             [ForgotPasswordController::class, 'sendOtp']
-//         )->name('forgot_password.send_otp');
-
-//         Route::post(
-//             '/verify-otp',
-//             [ForgotPasswordController::class, 'verifyOtp']
-//         )->name('forgot_password.verify_otp');
-
-//         Route::post(
-//             '/resend-otp',
-//             [ForgotPasswordController::class, 'resendOtp']
-//         )->name('forgot_password.resend_otp');
-
-//         Route::post(
-//             '/reset',
-//             [ForgotPasswordController::class, 'resetPassword']
-//         )->name('forgot_password.reset');
-//     });
+        Route::get('/', 'index')->name('forgot_password.form');
+        Route::post('/send-otp', 'sendOtp')->name('forgot_password.send_otp');
+        Route::post('/verify-otp', 'verifyOtp')->name('forgot_password.verify_otp');
+        Route::post('/resend-otp', 'resendOtp')->name('forgot_password.resend_otp');
+        Route::post('/reset-password', 'updatePassword')->name('forgot_password.reset');
+    });
 
 
 /*
@@ -123,6 +156,15 @@ Route::middleware([
 
     ->group(function () {
 
+
+        Route::get('/profile', [UserProfileController::class, 'index'])
+            ->name('profile.index');
+
+        Route::post('/profile', [UserProfileController::class, 'update'])
+            ->name('profile.update');
+
+        Route::post('/profile/password', [UserProfileController::class, 'changePassword'])
+            ->name('profile.password');
         /*
         |--------------------------------------------------------------------------
         | Dashboard
@@ -138,6 +180,28 @@ Route::middleware([
             'system-users',
             SystemUserController::class
         );
+
+        Route::get('system-users/export/excel', [SystemUserController::class, 'exportExcel'])
+            ->name('system-users.export.excel');
+
+        Route::get('system-users/export/pdf', [SystemUserController::class, 'exportPdf'])
+            ->name('system-users.export.pdf');
+
+        Route::get(
+            'user-permissions/{systemUser}',
+            [UserPermissionController::class, 'index']
+        )->name('user-permissions.index');
+
+        Route::post(
+            'user-permissions/{systemUser}',
+            [UserPermissionController::class, 'store']
+        )->name('user-permissions.store');
+
+
+        Route::get(
+            'institute-yearly-report',
+            [InstitutePaymentReportController::class, 'yearlyPaymentReport']
+        )->name('institute-yearly-report');
 
 
         /*
@@ -439,6 +503,18 @@ Route::middleware([
             return view('admin.payment.today-receipt');
         })->name('payments.today-receipt');
 
+
+
+        Route::resource(
+            'admissions',
+            AdmissionController::class
+        );
+
+        Route::resource(
+            'admission-payments',
+            AdmissionPaymentController::class
+        );
+
         /*
         |--------------------------------------------------------------------------
         | Attendance
@@ -446,7 +522,7 @@ Route::middleware([
         */
 
         Route::get('/attendance', function () {
-            return view('Admin.attendance.index');
+            return view('admin.attendance.index');
         })->name('attendance.index');
 
         /*
@@ -484,6 +560,12 @@ Route::middleware([
             OrganizerPaymentController::class,
             'storeAdjustment'
         ])->name('organizer-payments.adjustment-store');
+
+        Route::get('organizers/export/excel', [OrganizerController::class, 'exportExcel'])
+            ->name('organizers.export.excel');
+
+        Route::get('organizers/export/pdf', [OrganizerController::class, 'exportPdf'])
+            ->name('organizers.export.pdf');
 
 
         /*
@@ -535,7 +617,7 @@ Route::middleware([
 
         /* 
         |--------------------------------------------------------------------------
-        | Institute Income Report 
+        | Institute Income Report
         |-------------------------------------------------------------------------- 
         */
         Route::get('institute-income/monthly-report', [
@@ -587,4 +669,193 @@ Route::middleware([
             'temporary-id-cards/download-pdf',
             [TemporaryIDCardController::class, 'downloadPdf']
         )->name('temporary-id-cards.download-pdf');
+        /*
+|--------------------------------------------------------------------------
+| Daily Reports
+|--------------------------------------------------------------------------
+*/
+
+        // Daily Report Routes
+        Route::get('daily-report', [DailyReportController::class, 'index'])->name('daily-report.index');
+        Route::get('daily-report/{type}/pdf', [DailyReportController::class, 'downloadPdf'])->name('daily-report.pdf');
+        Route::get('daily-report/{type}/excel', [DailyReportController::class, 'downloadExcel'])->name('daily-report.excel');
+
+        // Summary Report Download Routes (for generateDailyReport)
+        Route::get('daily-report/summary/pdf', [DailyReportController::class, 'downloadSummaryPdf'])->name('daily-report.summary.pdf');
+        Route::get('daily-report/summary/excel', [DailyReportController::class, 'downloadSummaryExcel'])->name('daily-report.summary.excel');
+
+        // Teacher Report Routes
+        Route::get('/teacher-report', [TeacherReportController::class, 'index'])->name('teacher-report.index');
+        Route::get('/teacher-report/pdf', [TeacherReportController::class, 'downloadTeacherWithStudentPaymentsPdf'])->name('teacher-report.pdf');
+        Route::get('/teacher-report/excel', [TeacherReportController::class, 'downloadTeacherWithStudentPaymentsExcel'])->name('teacher-report.excel');
+        // Teacher Expense Report
+        Route::get('/teacher-report/expense', [TeacherReportController::class, 'teacherExpenseReport'])->name('teacher-expense-report');
+        Route::get('/teacher-report/expense/excel', [TeacherReportController::class, 'teacherExpenseReportExcel'])->name('teacher-expense-report.excel');
+        Route::get('/teacher-report/expense/pdf', [TeacherReportController::class, 'teacherExpenseReportPdf'])->name('teacher-expense-report.pdf');
+
+        Route::get('/monthly-report', [MonthlyReportController::class, 'index'])
+            ->name('monthly-report.index');
+
+        // Excel
+        Route::get(
+            '/excel/teacher/teacher-salary-report/excel',
+            [MonthlyReportController::class, 'TeacherSalaryReportExcel']
+        )->name('teacher.salary.report.excel');
+
+        // PDF
+        Route::get(
+            '/pdf/teacher/teacher-salary-report/pdf',
+            [MonthlyReportController::class, 'TeacherSalaryReportPdf']
+        )->name('teacher.salary.report.pdf');
+        /*
+|--------------------------------------------------------------------------
+| Institute Expenses
+|--------------------------------------------------------------------------
+*/
+
+        Route::get('/student-images', [StudentImageController::class, 'index'])
+            ->name('student-images.index');
+
+        Route::post('/student-images/{quickPhoto}/assign', [StudentImageController::class, 'assign'])
+            ->name('student-images.assign');
+
+        Route::resource(
+            'institute-expenses',
+            InstituteExpenseController::class
+        );
+
+        Route::patch(
+            'institute-expenses/{instituteExpense}/toggle-status',
+            [InstituteExpenseController::class, 'toggleStatus']
+        )->name('institute-expenses.toggle-status');
+
+
+        Route::prefix('student-id-cards')
+            ->name('student-id-cards.')
+            ->group(function () {
+                
+                // View routes
+                Route::get('/', [StudentIDCardController::class, 'index'])
+                    ->name('index');
+                
+                Route::get('{studentIdCard}/print', [StudentIDCardController::class, 'print'])
+                    ->name('print');
+                
+                // Download routes (NO Browsershot - Client side)
+                Route::get('{studentIdCard}/download', [StudentIDCardController::class, 'downloadSingle'])
+                    ->name('download-single');
+                
+                Route::post('download-bulk', [StudentIDCardController::class, 'downloadBulk'])
+                    ->name('download-bulk');
+                
+                // Status update routes (using Fetch API)
+                Route::patch('{studentIdCard}/status', [StudentIDCardController::class, 'updateStatus'])
+                    ->name('update-status');
+                
+                Route::patch('bulk-status', [StudentIDCardController::class, 'bulkUpdateStatus'])
+                    ->name('bulk-update-status');
+            });
+
+        Route::get('/today-attendance', [TodayAttendanceController::class, 'index'])
+            ->name('today-attendance.index');
+
+        Route::get(
+            '/reports/teacher-student-payment',
+            [MonthlyReportController::class, 'TeacherWithStudentPaymentReport']
+        )->name('teacher.student.payment.report');
+        Route::get(
+            '/reports/teacher-student-payment-excel',
+            [MonthlyReportController::class, 'TeacherWithStudentPaymentReportExcel']
+        )->name('teacher.student.payment.report.excel');
+        Route::get(
+            '/reports/teacher-student-payment-pdf',
+            [MonthlyReportController::class, 'TeacherWithStudentPaymentReportPdf']
+        )->name('teacher.student.payment.report.pdf');
+
+        // Report Page
+        Route::get(
+            '/institute-reports',
+            [InstituteReportController::class, 'index']
+        )->name('institute-reports.index');
+
+        // PDF Download
+        Route::get(
+            '/institute-reports/pdf',
+            [InstituteReportController::class, 'institutePaymentReportPdf']
+        )->name('institute-reports.pdf');
+
+        // Excel Download
+        Route::get(
+            '/institute-reports/excel',
+            [InstituteReportController::class, 'institutePaymentReportExcel']
+        )->name('institute-reports.excel');
+
+
+        /*
+|--------------------------------------------------------------------------
+| Institute Expenses
+|--------------------------------------------------------------------------
+*/
+
+        Route::get('weekly-timetable', [ClassTimeTableController::class, 'weeklyTimeTable'])
+            ->name('weekly-timetable');
+
+        Route::get('weekly-timetable/pdf', [ClassTimeTableController::class, 'downloadPdf'])
+            ->name('weekly.pdf');
+
+        Route::get('weekly-timetable/excel', [ClassTimeTableController::class, 'downloadExcel'])
+            ->name('weekly.excel');
+
+        /*
+|--------------------------------------------------------------------------
+| System Setting
+|--------------------------------------------------------------------------
+*/
+
+        Route::get('setting', [DatabaseBackupController::class, 'index'])
+            ->name('setting.index');
+
+        Route::get('setting/backup/export', [DatabaseBackupController::class, 'export'])
+            ->name('setting.backup.export');
+
+        Route::post('setting/backup/import', [DatabaseBackupController::class, 'import'])
+            ->name('setting.backup.import');
+
+        /*
+|--------------------------------------------------------------------------
+|  Activity Logs
+|--------------------------------------------------------------------------
+*/
+
+        Route::get('/activity-logs', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('/activity-logs/export', [App\Http\Controllers\Admin\ActivityLogController::class, 'export'])->name('activity-logs.export');
+        Route::post('/activity-logs/clear', [App\Http\Controllers\Admin\ActivityLogController::class, 'clearOld'])->name('activity-logs.clear');
+
+
+        /*
+|--------------------------------------------------------------------------
+|  Laravel Logs
+|--------------------------------------------------------------------------
+*/
+
+        Route::get(
+            '/logs/laravel',
+            [LogController::class, 'index']
+        )->name('logs.laravel.index');
+
+        Route::post(
+            '/logs/laravel/clear',
+            [LogController::class, 'clear']
+        )->name('logs.laravel.clear');
+
+        Route::get(
+            '/logs/laravel/download',
+            [LogController::class, 'download']
+        )->name('logs.laravel.download');
+
+        Route::get(
+            '/logs/laravel/stats',
+            [LogController::class, 'stats']
+        )
+            ->name('logs.laravel.stats');
     });

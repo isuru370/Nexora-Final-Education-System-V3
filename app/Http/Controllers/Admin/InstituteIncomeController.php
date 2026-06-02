@@ -30,9 +30,10 @@ class InstituteIncomeController extends Controller
             'year' => $year,
             'month' => $month,
             'summary' => $report['summary'],
-            'teacher_summaries' => $report['teacher_summaries'],
-            'organizer_summaries' => $report['organizer_summaries'],
-            'class_summaries' => $report['class_summaries'],
+            'teacher_summaries' => $report['teacher_summaries'] ?? [],
+            'organizer_summaries' => $report['organizer_summaries'] ?? [],
+            'class_summaries' => $report['class_summaries'] ?? [],
+            'admission_payment_list' => $report['admission_payment_list'] ?? [],
             'extra_income_list' => $report['extra_income_list'] ?? [],
             'expense_list' => $report['expense_list'] ?? [],
         ]);

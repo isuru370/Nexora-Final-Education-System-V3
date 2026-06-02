@@ -2,12 +2,16 @@
     $student = $student ?? null;
     $isEdit = $isEdit ?? false;
 
-    if ($isEdit && !empty($student?->img_url)) {
-        if (\Illuminate\Support\Str::startsWith($student->img_url, 'uploads/')) {
-            $studentImage = asset('storage/' . $student->img_url);
-        } else {
-            $studentImage = asset($student->img_url);
-        }
+    $latestAdmissionPayment = $latestAdmissionPayment ?? null;
+
+    $showAdmissionFields = old('admission', !empty($latestAdmissionPayment) ? 1 : 0) == 1;
+    $selectedAdmissionId = old('admission_id', $latestAdmissionPayment?->admission_id);
+    $selectedAmount = old('amount', $latestAdmissionPayment?->amount);
+
+    if (!empty($student?->img_url)) {
+        $studentImage = \Illuminate\Support\Str::startsWith($student->img_url, 'http')
+            ? $student->img_url
+            : asset('storage/' . ltrim($student->img_url, '/'));
     } else {
         $studentImage = asset('images/default-student.png');
     }
@@ -64,7 +68,7 @@
                 <div class="col-md-3">
                     <div class="image-preview-wrapper">
                         <img id="imagePreview" src="{{ $studentImage }}" alt="Student Image" class="image-preview"
-                            onerror="this.src='{{ asset('images/default-student.png') }}'">
+                            onerror="this.src='{{ asset('storage/uploads/male.png') }}'">
                     </div>
                 </div>
 
@@ -366,16 +370,29 @@
 
                 <div class="col-12">
                     <div class="form-check form-switch mt-2">
-
-                        <input class="form-check-input" type="checkbox" name="admission" value="1" id="admission"
-                            @if(old('admission', $student->admission ?? false)) checked @endif>
-
+                        <input class="form-check-input" type="checkbox" name="admission" value="1" id="admission" {{ $showAdmissionFields ? 'checked' : '' }}>
                         <label class="form-check-label fw-semibold ms-2" for="admission">
                             Admission Paid
-                            <small class="text-muted fw-normal">(Optional)</small>
                         </label>
-
                     </div>
+                </div>
+
+                <div class="col-md-6 mt-3 {{ $showAdmissionFields ? '' : 'd-none' }}" id="admissionBox">
+                    <label class="form-label fw-semibold">Select Admission</label>
+                    <select name="admission_id" id="admissionSelect" class="form-select custom-input">
+                        <option value="">Select Admission</option>
+                        @foreach($admissions as $admission)
+                            <option value="{{ $admission->id }}" data-amount="{{ $admission->amount }}" {{ (int) $selectedAdmissionId === (int) $admission->id ? 'selected' : '' }}>
+                                {{ $admission->name }} - Rs. {{ number_format($admission->amount, 2) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-6 mt-3 {{ $showAdmissionFields ? '' : 'd-none' }}" id="paymentAmountBox">
+                    <label class="form-label fw-semibold">Admission Payment Amount</label>
+                    <input type="number" name="amount" id="amountInput" class="form-control custom-input" readonly
+                        value="{{ $selectedAmount }}">
                 </div>
             </div>
         </div>
@@ -391,3 +408,31 @@
     </div>
 
 </div>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const admissionCheckbox = document.getElementById('admission');
+            const admissionBox = document.getElementById('admissionBox');
+            const paymentAmountBox = document.getElementById('paymentAmountBox');
+
+            console.log('checkbox exists:', admissionCheckbox);
+            console.log('checked:', admissionCheckbox.checked);
+
+            function toggleAdmissionFields() {
+
+                const show = admissionCheckbox.checked;
+
+                console.log('toggle show:', show);
+
+                admissionBox.classList.toggle('d-none', !show);
+                paymentAmountBox.classList.toggle('d-none', !show);
+            }
+
+            admissionCheckbox.addEventListener('change', toggleAdmissionFields);
+
+            toggleAdmissionFields();
+        });
+    </script>
+@endpush

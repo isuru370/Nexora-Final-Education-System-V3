@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Student;
 
+use App\Models\TemporaryIdCard;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreStudentRequest extends FormRequest
 {
@@ -16,7 +18,6 @@ class StoreStudentRequest extends FormRequest
     {
         $this->merge([
             'admission' => $this->boolean('admission'),
-
 
             'temporary_qr_code_expire_date' => $this->temporary_qr_code
                 ? Carbon::now('Asia/Colombo')->addMonths(2)
@@ -38,7 +39,7 @@ class StoreStudentRequest extends FormRequest
                         $fail('The temporary QR code must start from TMP001.');
                     }
 
-                    $card = \App\Models\TemporaryIdCard::where('temporary_id_number', $value)->first();
+                    $card = TemporaryIdCard::where('temporary_id_number', $value)->first();
 
                     if ($card && $card->status === 'expired') {
                         $fail('This temporary QR code is already expired.');
@@ -76,9 +77,14 @@ class StoreStudentRequest extends FormRequest
             'guardian_mobile' => 'required|string|max:20',
 
             'grade_id' => 'required|exists:grades,id',
-
             'class_type' => 'required|in:online,offline,hybrid',
+
             'admission' => 'boolean',
+            'admission_id' => [
+                Rule::requiredIf($this->boolean('admission')),
+                'nullable',
+                'exists:admissions,id',
+            ],
 
             'student_school' => 'nullable|string|max:150',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
@@ -90,6 +96,7 @@ class StoreStudentRequest extends FormRequest
         return [
             'temporary_qr_code.regex' => 'Temporary QR code must be like TMP001, TMP010, TMP100, or TMP1000.',
             'grade_id.required' => 'Grade is required.',
+            'admission_id.required' => 'Please select an admission type.',
         ];
     }
 }

@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>
-        @yield('title', 'Nexora Education System')
+        @yield('title', 'Minipalasa Education System')
     </title>
 
     <!-- Bootstrap -->
