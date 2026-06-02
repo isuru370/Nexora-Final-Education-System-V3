@@ -1,6 +1,7 @@
 @php
     $summary = $summary ?? [
         'class_income' => 0,
+        'admission_income' => 0,
         'teacher_income' => 0,
         'organizer_income' => 0,
         'institution_income' => 0,
@@ -21,6 +22,18 @@
                     LKR {{ number_format($summary['class_income'] ?? 0, 2) }}
                 </h3>
                 <small class="summary-sub">Total Student Payments</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="summary-card summary-info">
+            <div class="card-body text-center">
+                <small class="summary-label">Admission Income</small>
+                <h3 class="summary-value">
+                    LKR {{ number_format($summary['admission_income'] ?? 0, 2) }}
+                </h3>
+                <small class="summary-sub">Admission Payments</small>
             </div>
         </div>
     </div>
@@ -49,8 +62,12 @@
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="summary-card summary-info">
+</div>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="summary-card summary-dark">
             <div class="card-body text-center">
                 <small class="summary-label">Institute Income</small>
                 <h3 class="summary-value">
@@ -60,10 +77,6 @@
             </div>
         </div>
     </div>
-
-</div>
-
-<div class="row g-3 mb-4">
 
     <div class="col-md-4">
         <div class="summary-card summary-dark">
@@ -89,30 +102,43 @@
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="summary-card summary-blue">
-            <div class="card-body text-center">
-                <small class="summary-label">Gross Income</small>
-                <h3 class="summary-value">
-                    LKR {{ number_format($summary['gross_income'] ?? 0, 2) }}
-                </h3>
-                <small class="summary-sub">Institute + Extra Income</small>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-12">
-        <div class="summary-card" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+
+    <div class="col-md-6">
+        <div class="summary-card summary-blue">
             <div class="card-body text-center">
-                <small class="summary-label text-white-50">Net Income</small>
-                <h3 class="summary-value text-white">
-                    LKR {{ number_format($summary['net_income'] ?? 0, 2) }}
+                <small class="summary-label">Gross Income</small>
+
+                <h3 class="summary-value">
+                    LKR {{ number_format($summary['gross_income'] ?? 0, 2) }}
                 </h3>
-                <small class="summary-sub text-white-50">Gross Income - Expenses</small>
+
+                <small class="summary-sub">
+                    Class + Admission + Extra Income
+                </small>
             </div>
         </div>
     </div>
+
+    <div class="col-md-6">
+        <div class="summary-card" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+
+            <div class="card-body text-center">
+                <small class="summary-label text-white-50">
+                    Net Income
+                </small>
+
+                <h3 class="summary-value text-white">
+                    LKR {{ number_format($summary['net_income'] ?? 0, 2) }}
+                </h3>
+
+                <small class="summary-sub text-white-50">
+                    Gross Income - Expenses
+                </small>
+            </div>
+        </div>
+    </div>
+
 </div>

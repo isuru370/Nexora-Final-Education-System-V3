@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Exports\StudentsExport;
+use App\Models\Admission;
+use App\Models\AdmissionPayment;
 use App\Models\StudentIdCard;
 use App\Models\StudentPortalLogin;
 use App\Models\TemporaryIdCard;
@@ -52,7 +54,14 @@ class StudentController extends Controller
     {
         $grades = Grade::orderBy('grade_name')->get();
 
-        return view('admin.students.create', compact('grades'));
+        $admissions = Admission::active()
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.students.create', compact(
+            'grades',
+            'admissions'
+        ));
     }
 
     public function store(StoreStudentRequest $request)
@@ -69,9 +78,9 @@ class StudentController extends Controller
             } else {
                 // Default image by gender
                 if (($data['gender'] ?? null) === 'female') {
-                    $data['img_url'] = 'uploads/default-images/female.png';
+                    $data['img_url'] = 'uploads/female.png';
                 } else {
-                    $data['img_url'] = 'uploads/default-images/male.png';
+                    $data['img_url'] = 'uploads/male.png';
                 }
             }
 
@@ -81,7 +90,7 @@ class StudentController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if (!$temporaryCard) {
+            if (! $temporaryCard) {
                 DB::rollBack();
                 return back()
                     ->withInput()
@@ -105,14 +114,43 @@ class StudentController extends Controller
 
             // Create student ID card record
             StudentIdCard::create([
-                'student_id'           => $student->id,
-                'status'               => 'pending',
-                'registration_status'  => 'completed',
-                'student_fee'          => 350,
-                'print_cost'           => 90,
-                'profit'               => 260,
-                'is_reissue'           => false,
+                'student_id'          => $student->id,
+                'status'              => 'pending',
+                'registration_status' => 'completed',
+                'student_fee'         => 350,
+                'print_cost'          => 90,
+                'profit'              => 260,
+                'is_reissue'          => false,
             ]);
+
+            /**
+             * Admission payment auto create
+             * Checkbox tick + admission_id select කරලා තිබ්බොත් payment create වෙනවා
+             */
+            if ($request->boolean('admission') && $request->filled('admission_id')) {
+
+                $admission = Admission::active()
+                    ->where('id', $request->admission_id)
+                    ->first();
+
+                if (! $admission) {
+                    DB::rollBack();
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Selected admission not found or inactive.');
+                }
+
+                AdmissionPayment::create([
+                    'student_id'      => $student->id,
+                    'admission_id'    => $admission->id,
+                    'amount'          => $admission->amount,
+                    'payment_method'  => 'cash',
+                    'status'          => AdmissionPayment::STATUS_PAID,
+                    'note'            => null,
+                    'user_id'         => auth()->id(),
+                    'paid_at'         => now(),
+                ]);
+            }
 
             $plainPassword = $this->createStudentPortalLogin($student);
 
@@ -146,7 +184,57 @@ class StudentController extends Controller
     {
         $grades = Grade::orderBy('grade_name')->get();
 
-        return view('admin.students.edit', compact('student', 'grades'));
+        $latestAdmissionPayment = $student->admissionPayments()
+            ->where('status', 'paid')
+            ->latest()
+            ->first();
+
+        $admissions = Admission::withTrashed()
+            ->where(function ($query) use ($latestAdmissionPayment) {
+
+                $query->active();
+
+                if ($latestAdmissionPayment?->admission_id) {
+                    $query->orWhere('id', $latestAdmissionPayment->admission_id);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Debug Logs
+    |--------------------------------------------------------------------------
+    */
+
+        Log::info('Student Edit Debug', [
+
+            'student_id' => $student->id,
+
+            'latest_admission_payment' => $latestAdmissionPayment
+                ? $latestAdmissionPayment->toArray()
+                : null,
+
+            'selected_admission_id' => $latestAdmissionPayment?->admission_id,
+
+            'admission_ids' => $admissions->pluck('id')->toArray(),
+
+            'admissions' => $admissions->map(function ($admission) {
+                return [
+                    'id' => $admission->id,
+                    'name' => $admission->name,
+                    'is_active' => $admission->is_active,
+                    'deleted_at' => $admission->deleted_at,
+                ];
+            })->toArray(),
+        ]);
+
+        return view('admin.students.edit', compact(
+            'student',
+            'grades',
+            'admissions',
+            'latestAdmissionPayment'
+        ));
     }
 
     public function update(UpdateStudentRequest $request, Student $student)
@@ -155,7 +243,7 @@ class StudentController extends Controller
             DB::beginTransaction();
 
             $data = collect($request->validated())
-                ->except(['temporary_qr_code', 'temporary_qr_code_expire_date'])
+                ->except(['temporary_qr_code', 'temporary_qr_code_expire_date', 'admission', 'admission_id'])
                 ->toArray();
 
             if ($request->hasFile('image')) {
@@ -175,6 +263,50 @@ class StudentController extends Controller
                 $studentCard->update([
                     'registration_status' => 'completed',
                 ]);
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Admission Payment Sync
+        |--------------------------------------------------------------------------
+        | If checkbox is ticked + admission selected:
+        |   - create payment if not exists
+        |   - otherwise update latest payment
+        | If checkbox is unticked:
+        |   - mark latest payment as cancelled
+        */
+            $latestPayment = AdmissionPayment::where('student_id', $student->id)
+                ->latest('id')
+                ->first();
+
+            if ($request->boolean('admission') && $request->filled('admission_id')) {
+
+                $admission = Admission::active()
+                    ->findOrFail($request->admission_id);
+
+                $paymentData = [
+                    'student_id'      => $student->id,
+                    'admission_id'    => $admission->id,
+                    'amount'          => $admission->amount,
+                    'payment_method'  => 'cash',
+                    'status'          => AdmissionPayment::STATUS_PAID,
+                    'note'            => null,
+                    'user_id'         => auth()->id(),
+                    'paid_at'         => now(),
+                ];
+
+                if ($latestPayment) {
+                    $latestPayment->update($paymentData);
+                } else {
+                    AdmissionPayment::create($paymentData);
+                }
+            } else {
+
+                if ($latestPayment && $latestPayment->status !== AdmissionPayment::STATUS_CANCELLED) {
+                    $latestPayment->update([
+                        'status' => AdmissionPayment::STATUS_CANCELLED,
+                    ]);
+                }
             }
 
             DB::commit();

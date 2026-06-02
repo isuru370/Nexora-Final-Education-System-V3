@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Password Reset OTP</title>
 </head>
+
 <body style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
     <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 30px; border-radius: 10px;">
         <h2 style="color: #333;">Password Reset Request</h2>
@@ -18,11 +20,12 @@
             {{ $otp }}
         </div>
 
-        <p>This OTP is valid for <strong>3 minutes</strong>.</p>
+        <p>This OTP is valid for <strong>{{ config('app.otp_expiry_minutes', 10) }} minutes</strong>.</p>
 
         <p>If you did not request this, please ignore this email.</p>
 
-        <p>Thank you,<br>VISION ACADEMY OF HIGHER EDUCATION</p>
+        <p>Thank you,<br>{{ config('app.name') }}</p>
     </div>
 </body>
+
 </html>

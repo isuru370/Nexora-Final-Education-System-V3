@@ -74,6 +74,11 @@ class Student extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function admissionPayments()
+    {
+        return $this->hasMany(AdmissionPayment::class);
+    }
+
     public function portalLogin()
     {
         return $this->hasOne(StudentPortalLogin::class);

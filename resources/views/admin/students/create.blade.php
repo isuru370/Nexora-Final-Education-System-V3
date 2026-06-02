@@ -187,11 +187,12 @@
                 @include('admin.students.partials.form', [
                     'student' => null,
                     'grades' => $grades,
+                    'admissions' => $admissions,
                     'buttonText' => 'Save Student',
                     'isEdit' => false
                 ])
-                </form>
+                    </form>
 
+                </div>
             </div>
-        </div>
 @endsection

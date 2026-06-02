@@ -175,11 +175,13 @@
                 @include('admin.students.partials.form', [
                     'student' => $student,
                     'grades' => $grades,
+                    'admissions' => $admissions,
+                    'latestAdmissionPayment' => $latestAdmissionPayment,
                     'buttonText' => 'Update Student',
                     'isEdit' => true
                 ])
-                </form>
+                    </form>
 
+                </div>
             </div>
-        </div>
 @endsection

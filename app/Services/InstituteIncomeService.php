@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AdmissionPayment;
 use App\Models\PaymentSplitSnapshot;
 use App\Models\InstitutePayment;
 use App\Models\ExtraIncome;
@@ -23,6 +24,31 @@ class InstituteIncomeService
             'organizer_income' => $snapshots->sum('organizer_amount'),
             'institution_income' => $snapshots->sum('institution_amount'),
         ];
+
+        // 2. ADMISSION PAYMENT INCOME
+        $admissionPayments = AdmissionPayment::query()
+            ->with(['student', 'admission'])
+            ->paid()
+            ->whereYear('paid_at', $year)
+            ->whereMonth('paid_at', $month)
+            ->get();
+
+        $totalAdmissionIncome = $admissionPayments->sum('amount');
+
+        $admissionPaymentSummaries = $admissionPayments->map(function ($payment) {
+            return [
+                'id' => $payment->id,
+                'student_id' => $payment->student_id,
+                'student_name' => $payment->student?->initial_name,
+                'admission_id' => $payment->admission_id,
+                'admission_name' => $payment->admission?->name,
+                'amount' => $payment->amount,
+                'paid_at' => optional($payment->paid_at)->format('Y-m-d'),
+                'payment_method' => $payment->payment_method,
+                'receipt_number' => $payment->receipt_number,
+                'note' => $payment->note,
+            ];
+        })->values();
 
         // ==================== 2. EXTRA INCOME (Additional Income) ====================
         $extraIncomes = ExtraIncome::query()
@@ -68,7 +94,7 @@ class InstituteIncomeService
         })->values();
 
         // ==================== 4. CALCULATE GROSS & NET INCOME ====================
-        $grossIncome = $mainIncome['institution_income'] + $totalExtraIncome;
+        $grossIncome = $mainIncome['institution_income'] + $totalExtraIncome + $totalAdmissionIncome;
         $netIncome = $grossIncome - $totalExpenses;
 
         $overall = [
@@ -76,6 +102,7 @@ class InstituteIncomeService
             'teacher_income' => $mainIncome['teacher_income'],
             'organizer_income' => $mainIncome['organizer_income'],
             'institution_income' => $mainIncome['institution_income'],
+            'admission_income' => $totalAdmissionIncome,
             'extra_income' => $totalExtraIncome,
             'total_expenses' => $totalExpenses,
             'gross_income' => $grossIncome,
@@ -143,6 +170,7 @@ class InstituteIncomeService
             'year' => $year,
             'month' => $month,
             'summary' => $overall,
+            'admission_payment_list' => $admissionPaymentSummaries,
             'teacher_summaries' => $teacherSummaries,
             'organizer_summaries' => $organizerSummaries,
             'class_summaries' => $classSummaries,
