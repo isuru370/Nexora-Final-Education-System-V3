@@ -457,7 +457,7 @@
                 </div>
 
                 <h1 class="brand-title">
-                    MINIPALASA EDUCATION
+                    NEXORA EDUCATION
                 </h1>
 
                 <p class="brand-subtitle">

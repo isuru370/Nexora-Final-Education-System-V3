@@ -47,13 +47,28 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-
     if (auth()->check()) {
-        return redirect('/dashboard');
+        return view('welcome');
+        // return redirect('/dashboard');
     }
-
     return view('welcome');
 })->name('welcome');
+
+Route::get('/interactive-learning', function () {
+    return view('interactive-learning');
+})->name('interactive-learning');
+
+Route::get('/mobile-app', function () {
+    return view('mobile-app');
+})->name('mobile-app');
+
+Route::get('/web-platform', function () {
+    return view('web-platform');
+})->name('web-platform');
+
+Route::get('/pricing', function () {
+    return view('pricing');
+})->name('pricing');
 
 
 Route::get('/contact_administrator', function () {
@@ -733,25 +748,25 @@ Route::middleware([
         Route::prefix('student-id-cards')
             ->name('student-id-cards.')
             ->group(function () {
-                
+
                 // View routes
                 Route::get('/', [StudentIDCardController::class, 'index'])
                     ->name('index');
-                
+
                 Route::get('{studentIdCard}/print', [StudentIDCardController::class, 'print'])
                     ->name('print');
-                
+
                 // Download routes (NO Browsershot - Client side)
                 Route::get('{studentIdCard}/download', [StudentIDCardController::class, 'downloadSingle'])
                     ->name('download-single');
-                
+
                 Route::post('download-bulk', [StudentIDCardController::class, 'downloadBulk'])
                     ->name('download-bulk');
-                
+
                 // Status update routes (using Fetch API)
                 Route::patch('{studentIdCard}/status', [StudentIDCardController::class, 'updateStatus'])
                     ->name('update-status');
-                
+
                 Route::patch('bulk-status', [StudentIDCardController::class, 'bulkUpdateStatus'])
                     ->name('bulk-update-status');
             });
