@@ -39,18 +39,15 @@ class QuickPhotoController extends Controller
             // save DB
             $quickPhoto = DB::transaction(function () use ($uploadedPath) {
 
-                $custom_id =
-                    'QP-' . str_pad(3, '0', STR_PAD_LEFT);
-
                 // create first
                 $photo = QuickPhoto::create([
-                    'custom_id' => $custom_id,
                     'image_path' => $uploadedPath,
                     'is_active' => true,
                 ]);
 
                 // generate custom id using db id
-
+                $photo->custom_id =
+                    'QP-' . str_pad($photo->id, 3, '0', STR_PAD_LEFT);
 
                 $photo->save();
 
