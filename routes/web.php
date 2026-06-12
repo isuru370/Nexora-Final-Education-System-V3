@@ -28,8 +28,10 @@ use App\Http\Controllers\Admin\InstitutePaymentReportController;
 use App\Http\Controllers\Admin\InstituteReportController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\MonthlyReportController;
+use App\Http\Controllers\Admin\ReceiptController;
 use App\Http\Controllers\Admin\StudentIDCardController;
 use App\Http\Controllers\Admin\StudentImageController;
+use App\Http\Controllers\Admin\StudentPaymentController;
 use App\Http\Controllers\Admin\TeacherReportController;
 use App\Http\Controllers\Admin\TeacherSalaryController;
 use App\Http\Controllers\Admin\TemporaryIDCardController;
@@ -47,28 +49,13 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+
     if (auth()->check()) {
-        return view('welcome');
-        // return redirect('/dashboard');
+        return redirect('/dashboard');
     }
+
     return view('welcome');
 })->name('welcome');
-
-Route::get('/interactive-learning', function () {
-    return view('interactive-learning');
-})->name('interactive-learning');
-
-Route::get('/mobile-app', function () {
-    return view('mobile-app');
-})->name('mobile-app');
-
-Route::get('/web-platform', function () {
-    return view('web-platform');
-})->name('web-platform');
-
-Route::get('/pricing', function () {
-    return view('pricing');
-})->name('pricing');
 
 
 Route::get('/contact_administrator', function () {
@@ -253,6 +240,40 @@ Route::middleware([
             'students-export/pdf',
             [StudentController::class, 'exportPdf']
         )->name('students.exportPdf');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Student QR Reports
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            'students-export/all-students-pdf',
+            [StudentController::class, 'allStudentDetailsPdf']
+        )->name('students.allStudentDetailsPdf');
+
+        Route::get(
+            'students-export/temporary-card-expired-soon-pdf',
+            [StudentController::class, 'studentTemporaryCardExpiredSoon']
+        )->name('students.studentTemporaryCardExpiredSoon');
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Student Payment Counter
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/students-payments',
+            [StudentPaymentController::class, 'index']
+        )->name('students-payments.index');
+
+        Route::get(
+            '/students-payments/{id}',
+            [StudentPaymentController::class, 'show']
+        )->name('students-payments.show');
 
 
         /*
@@ -787,6 +808,21 @@ Route::middleware([
             [MonthlyReportController::class, 'TeacherWithStudentPaymentReportPdf']
         )->name('teacher.student.payment.report.pdf');
 
+
+
+        Route::get(
+            '/reports/teacher-student-payment-date',
+            [MonthlyReportController::class, 'TeacherWithStudentPaymentDateReport']
+        )->name('teacher.student.payment.report');
+        Route::get(
+            '/reports/teacher-student-payment-date-excel',
+            [MonthlyReportController::class, 'TeacherWithStudentPaymentDateReportExcel']
+        )->name('teacher.student.payment.report.excel');
+        Route::get(
+            '/reports/teacher-student-payment-date-pdf',
+            [MonthlyReportController::class, 'TeacherWithStudentPaymentDateReportPdf']
+        )->name('teacher.student.payment.report.pdf');
+
         // Report Page
         Route::get(
             '/institute-reports',
@@ -873,4 +909,19 @@ Route::middleware([
             [LogController::class, 'stats']
         )
             ->name('logs.laravel.stats');
+
+        Route::get(
+            '/receipts',
+            [ReceiptController::class, 'index']
+        )->name('receipts.index');
+
+        Route::get(
+            '/receipts/export/excel',
+            [ReceiptController::class, 'exportExcel']
+        )->name('receipts.export.excel');
+
+        Route::get(
+            '/receipts/export/pdf',
+            [ReceiptController::class, 'exportPdf']
+        )->name('receipts.export.pdf');
     });
