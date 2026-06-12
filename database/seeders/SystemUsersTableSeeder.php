@@ -24,19 +24,6 @@ class SystemUsersTableSeeder extends Seeder
                 'address2' => 'Nexora IT Solutions',
                 'address3' => 'Mirigama',
             ],
-            [
-                'custom_id' => 'ADM002',
-                'full_name' => 'Minipalasa Administrator',
-                'email' => 'minipalasa@gmail.com',
-                'password' => 'Admin@minipalasa',
-                'mobile' => '0719876543',
-                'nic' => '987654321V',
-                'bday' => '1990-05-20',
-                'gender' => 'male',
-                'address1' => 'Mirigama',
-                'address2' => 'Sri Lanka',
-                'address3' => 'Sri Lanka',
-            ],
         ];
 
         // 🔥 get admin user type
