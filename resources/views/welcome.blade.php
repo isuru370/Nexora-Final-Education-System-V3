@@ -425,13 +425,13 @@
             </div>
 
             <div class="logo-container">
-                <img src="{{ asset('storage/logo/logo.png') }}" alt="MINIPALASA HIGHER EDUCATION INSTITUTE logo" class="logo"
+                <img src="{{ asset('storage/logo/logo.png') }}" alt="NEXORA EDU logo" class="logo"
                     onerror="this.src='https://placehold.co/320x120/0f766e/ffffff?text=MINIPALASA+INSTITUTE&font=inter';">
             </div>
 
             <div class="hero">
                 <h1>
-                    Welcome to <span class="accent">MINIPALASA HIGHER EDUCATION INSTITUTE</span>
+                    Welcome to <span class="accent">NEXORAIT EDU SYSTEM</span>
                 </h1>
 
                 <p class="subline">
