@@ -89,7 +89,7 @@ class StudentService
     public function createStudentPortalLogin(Student $student): string
     {
         $plainPassword = $this->generateStudentPassword(
-            $student->full_name,
+            $student->initial_name,
             $student->mobile
         );
 
