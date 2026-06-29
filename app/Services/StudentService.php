@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendStudentPortalLoginSms;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Models\StudentIdCard;
@@ -14,6 +15,7 @@ use App\Services\ParentHub\ParentHubService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Exception;
 
 class StudentService
@@ -101,10 +103,17 @@ class StudentService
             'is_active' => true,
         ]);
 
-        DB::afterCommit(function () use ($student) {
+        DB::afterCommit(function () use ($student, $plainPassword) {
+
             $this->parentHubService->registerStudent(
                 $student->custom_id,
                 $student->custom_id
+            );
+
+            SendStudentPortalLoginSms::dispatch(
+                $student->guardian_mobile,
+                $student->custom_id,
+                $plainPassword
             );
         });
 
@@ -114,13 +123,22 @@ class StudentService
     /**
      * Generate student password
      */
-    private function generateStudentPassword(string $name, string $mobile): string
-    {
-        $source = strtolower(trim($name)) . preg_replace('/\D/', '', $mobile);
-        $number = abs(crc32($source));
-        return str_pad(substr((string) $number, 0, 8), 8, '0', STR_PAD_LEFT);
-    }
 
+    private function generateStudentPassword(): string
+    {
+        do {
+            $password = Str::password(
+                length: 8,
+                letters: true,
+                numbers: true,
+                symbols: false
+            );
+        } while (
+            StudentPortalLogin::where('password', $password)->exists()
+        );
+
+        return $password;
+    }
     /**
      * Get default image URL based on gender
      */
