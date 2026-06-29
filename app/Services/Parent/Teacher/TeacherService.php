@@ -21,11 +21,17 @@ class TeacherService
 
         try {
 
+            // ✅ Get student's enrolled class IDs
             $studentClassIds = StudentClassEnrollment::query()
                 ->where('student_id', $studentId)
                 ->where('is_active', true)
                 ->pluck('student_class_id')
                 ->all();
+
+            Log::info('Student enrolled classes', [
+                'student_id' => $studentId,
+                'class_ids' => $studentClassIds
+            ]);
 
             $teachers = Teacher::query()
                 ->select([
@@ -63,20 +69,38 @@ class TeacherService
 
             $teachers->each(function ($teacher) use ($studentClassIds) {
 
-                $teacher->classes->transform(function ($class) use ($studentClassIds) {
+                // ✅ Determine if this teacher has ANY enrolled class
+                $hasEnrolledClass = false;
 
-                    $class->is_my_class = in_array(
-                        $class->id,
-                        $studentClassIds,
-                        true
-                    );
+                $teacher->classes->transform(function ($class) use ($studentClassIds, &$hasEnrolledClass) {
+
+                    // ✅ Check if THIS specific class is enrolled by student
+                    $isMyClass = in_array($class->id, $studentClassIds, true);
+                    
+                    if ($isMyClass) {
+                        $hasEnrolledClass = true;
+                    }
+
+                    $class->is_my_class = $isMyClass;
 
                     return $class;
                 });
 
+                // ✅ Set teacher-level flag based on actual enrollment
+                $teacher->is_my_teacher = $hasEnrolledClass;
+
+                // ✅ Sort: Enrolled classes first, then others
                 $teacher->classes = $teacher->classes
                     ->sortByDesc('is_my_class')
                     ->values();
+
+                Log::info('Teacher classes processed', [
+                    'teacher_id' => $teacher->id,
+                    'teacher_name' => $teacher->full_name,
+                    'is_my_teacher' => $teacher->is_my_teacher,
+                    'enrolled_classes' => $teacher->classes->where('is_my_class', true)->pluck('class_name')->toArray(),
+                    'total_classes' => $teacher->classes->count(),
+                ]);
             });
 
             return $teachers;
