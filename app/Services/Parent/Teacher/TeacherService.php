@@ -10,11 +10,6 @@ use Throwable;
 
 class TeacherService
 {
-    /**
-     * Get all teachers and highlight student's enrolled classes.
-     *
-     * @throws Throwable
-     */
     public function getAllTeachers(
         int $studentId
     ): Collection {
@@ -26,7 +21,7 @@ class TeacherService
                 ->where('student_id', $studentId)
                 ->where('is_active', true)
                 ->pluck('student_class_id')
-                ->all();
+                ->toArray();
 
             Log::info('Student enrolled classes', [
                 'student_id' => $studentId,
@@ -69,37 +64,38 @@ class TeacherService
 
             $teachers->each(function ($teacher) use ($studentClassIds) {
 
-                // ✅ Determine if this teacher has ANY enrolled class
-                $hasEnrolledClass = false;
+                // ✅ Process each class and set is_my_class
+                $teacher->classes->transform(function ($class) use ($studentClassIds) {
 
-                $teacher->classes->transform(function ($class) use ($studentClassIds, &$hasEnrolledClass) {
-
-                    // ✅ Check if THIS specific class is enrolled by student
+                    // ✅ Check if THIS class is enrolled by student
                     $isMyClass = in_array($class->id, $studentClassIds, true);
-                    
-                    if ($isMyClass) {
-                        $hasEnrolledClass = true;
-                    }
 
+                    // ✅ Set the is_my_class flag
                     $class->is_my_class = $isMyClass;
+
+                    Log::info('Class enrollment check', [
+                        'class_id' => $class->id,
+                        'class_name' => $class->class_name,
+                        'is_my_class' => $isMyClass,
+                        'student_class_ids' => $studentClassIds
+                    ]);
 
                     return $class;
                 });
 
-                // ✅ Set teacher-level flag based on actual enrollment
-                $teacher->is_my_teacher = $hasEnrolledClass;
+                // ✅ Set teacher-level flag
+                $teacher->is_my_teacher = $teacher->classes->contains('is_my_class', true);
 
-                // ✅ Sort: Enrolled classes first, then others
+                // ✅ Sort: Enrolled classes first
                 $teacher->classes = $teacher->classes
                     ->sortByDesc('is_my_class')
                     ->values();
 
-                Log::info('Teacher classes processed', [
+                Log::info('Teacher processed', [
                     'teacher_id' => $teacher->id,
                     'teacher_name' => $teacher->full_name,
                     'is_my_teacher' => $teacher->is_my_teacher,
                     'enrolled_classes' => $teacher->classes->where('is_my_class', true)->pluck('class_name')->toArray(),
-                    'total_classes' => $teacher->classes->count(),
                 ]);
             });
 
