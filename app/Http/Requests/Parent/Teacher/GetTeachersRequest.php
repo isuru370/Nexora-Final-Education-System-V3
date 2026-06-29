@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Parent\Dashboard;
+namespace App\Http\Requests\Parent\Teacher;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class DashboardRequest extends FormRequest
+class GetTeachersRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -22,14 +22,10 @@ class DashboardRequest extends FormRequest
         ];
     }
 
-    /**
-     * Custom Validation Messages
-     */
     public function messages(): array
     {
         return [
-            'student_id.required' => 'Student ID is required.',
-            'student_id.integer'  => 'Student ID must be an integer.',
+            'student_id.required' => 'Student id is required.',
             'student_id.exists'   => 'Selected student does not exist.',
         ];
     }

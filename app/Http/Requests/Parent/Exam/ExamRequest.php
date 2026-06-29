@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Parent\Dashboard;
+namespace App\Http\Requests\Parent\Exam;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class DashboardRequest extends FormRequest
+class ExamRequest extends FormRequest
 {
     public function authorize(): bool
     {

@@ -14,15 +14,23 @@ class StudentAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'student_id' => ['required', 'integer', 'exists:students,id'],
+            'student_id' => [
+                'required',
+                'integer',
+                'exists:students,id',
+            ],
         ];
     }
 
+    /**
+     * Custom Validation Messages
+     */
     public function messages(): array
     {
         return [
-            'student_id.required' => 'Student id is required.',
-            'student_id.exists' => 'Student not found.',
+            'student_id.required' => 'Student ID is required.',
+            'student_id.integer'  => 'Student ID must be an integer.',
+            'student_id.exists'   => 'Selected student does not exist.',
         ];
     }
 }
