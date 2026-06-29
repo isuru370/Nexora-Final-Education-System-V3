@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\API\Notification\NotificationController;
 use App\Http\Controllers\API\Parent\Attendance\StudentAttendanceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Parent\Auth\ParentAuthController;
+use App\Http\Controllers\API\Parent\ClassSchedule\ClassScheduleController;
 use App\Http\Controllers\API\Parent\Dashboard\DashboardController;
 use App\Http\Controllers\API\Parent\Exam\ExamController;
 use App\Http\Controllers\API\Parent\FCM\FcmTokenController;
@@ -18,10 +20,7 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::post('/auth/login', [
-        ParentAuthController::class,
-        'login'
-    ]);
+    Route::post('/auth/login', [ParentAuthController::class, 'login']);
 
     /*
     |--------------------------------------------------------------------------
@@ -29,10 +28,7 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::post('/dashboard', [
-        DashboardController::class,
-        'fetchDashboardData'
-    ]);
+    Route::post('/dashboard', [DashboardController::class, 'fetchDashboardData']);
 
     /*
     |--------------------------------------------------------------------------
@@ -40,68 +36,87 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::post('/fcm/token', [
-        FcmTokenController::class,
-        'store'
-    ]);
-
-    Route::post('/fcm/logout', [
-        FcmTokenController::class,
-        'logout'
-    ]);
+    Route::prefix('/fcm')->group(function () {
+        Route::post('/token', [FcmTokenController::class, 'store']);
+        Route::post('/logout', [FcmTokenController::class, 'logout']);
+    });
 
     /*
-|--------------------------------------------------------------------------
-| Attendance
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Attendance
+    |--------------------------------------------------------------------------
+    */
 
-    Route::post('/attendance', [
-        StudentAttendanceController::class,
-        'index'
-    ]);
+    Route::post('/attendance', [StudentAttendanceController::class, 'index']);
 
     /*
-|--------------------------------------------------------------------------
-| Payment
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Payment
+    |--------------------------------------------------------------------------
+    */
 
-    Route::post('/payments', [
-        StudentPaymentController::class,
-        'index'
-    ]);
+    Route::post('/payments', [StudentPaymentController::class, 'index']);
 
     /*
-|--------------------------------------------------------------------------
-| Exam
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Exam
+    |--------------------------------------------------------------------------
+    */
 
-    Route::post('/exams', [
-        ExamController::class,
-        'index'
-    ]);
+    Route::post('/exams', [ExamController::class, 'index']);
 
     /*
-|--------------------------------------------------------------------------
-| Result
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Result
+    |--------------------------------------------------------------------------
+    */
 
-    Route::post('/results', [
-        ResultController::class,
-        'index'
-    ]);
+    Route::post('/results', [ResultController::class, 'index']);
 
-        /*
-|--------------------------------------------------------------------------
-| Teacher Details
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Teacher Details
+    |--------------------------------------------------------------------------
+    */
 
-    Route::post('/teachers', [
-        TeacherController::class,
-        'index'
-    ]);
+    Route::post('/teachers', [TeacherController::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Class Schedule
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/schedule', [ClassScheduleController::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications (Using NotificationController)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('/notifications')->group(function () {
+        // Send notifications
+        Route::post('/send', [NotificationController::class, 'send']);
+        Route::post('/send-now', [NotificationController::class, 'sendNow']);
+        Route::post('/bulk', [NotificationController::class, 'sendBulk']);
+        Route::post('/send-to-all', [NotificationController::class, 'sendToAll']);
+        Route::post('/send-to-grade/{grade}', [NotificationController::class, 'sendToGrade']);
+
+        // Get notification status
+        Route::get('/{id}/status', [NotificationController::class, 'status']);
+
+        // Manage notifications
+        Route::post('/{id}/retry', [NotificationController::class, 'retry']);
+        Route::post('/{id}/cancel', [NotificationController::class, 'cancel']);
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+
+        // List and filter
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/student/{studentId}/history', [NotificationController::class, 'history']);
+
+        // Stats and maintenance
+        Route::get('/stats', [NotificationController::class, 'stats']);
+        Route::delete('/cleanup', [NotificationController::class, 'deleteOld']);
+    });
 });
