@@ -11,22 +11,21 @@ use Throwable;
 class TeacherService
 {
     /**
-     * Get all active teachers and highlight student's teachers.
-     *
-     * @param int $studentId
-     * @return Collection
+     * Get all teachers and highlight student's enrolled classes.
      *
      * @throws Throwable
      */
-    public function getAllTeachers(int $studentId): Collection
-    {
+    public function getAllTeachers(
+        int $studentId
+    ): Collection {
+
         try {
 
             $studentClassIds = StudentClassEnrollment::query()
                 ->where('student_id', $studentId)
                 ->where('is_active', true)
                 ->pluck('student_class_id')
-                ->toArray();
+                ->all();
 
             $teachers = Teacher::query()
                 ->select([
@@ -41,6 +40,7 @@ class TeacherService
                 ->where('is_active', true)
                 ->with([
                     'classes' => function ($query) {
+
                         $query->select([
                             'id',
                             'teacher_id',
@@ -48,7 +48,11 @@ class TeacherService
                             'medium',
                             'class_type',
                             'grade_id',
-                        ])->with([
+                            'is_active',
+                            'is_ongoing',
+                        ])
+                        ->where('is_active', true)
+                        ->with([
                             'grade:id,grade_name',
                             'categories:id,category_name',
                         ]);
@@ -57,23 +61,33 @@ class TeacherService
                 ->orderBy('full_name')
                 ->get();
 
-            return $teachers->map(function ($teacher) use ($studentClassIds) {
+            $teachers->each(function ($teacher) use ($studentClassIds) {
 
-                $teacher->is_my_teacher = $teacher->classes
-                    ->pluck('id')
-                    ->intersect($studentClassIds)
-                    ->isNotEmpty();
+                $teacher->classes->transform(function ($class) use ($studentClassIds) {
 
-                return $teacher;
+                    $class->is_my_class = in_array(
+                        $class->id,
+                        $studentClassIds,
+                        true
+                    );
+
+                    return $class;
+                });
+
+                $teacher->classes = $teacher->classes
+                    ->sortByDesc('is_my_class')
+                    ->values();
             });
+
+            return $teachers;
 
         } catch (Throwable $e) {
 
             Log::error('Failed to fetch teachers.', [
                 'student_id' => $studentId,
-                'message'    => $e->getMessage(),
-                'file'       => $e->getFile(),
-                'line'       => $e->getLine(),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             throw $e;
