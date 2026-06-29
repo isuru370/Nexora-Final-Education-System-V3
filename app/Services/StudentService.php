@@ -124,20 +124,29 @@ class StudentService
      * Generate student password
      */
 
-    private function generateStudentPassword(): string
-    {
-        do {
-            $password = Str::password(
-                length: 8,
-                letters: true,
-                numbers: true,
-                symbols: false
-            );
-        } while (
-            StudentPortalLogin::where('password', $password)->exists()
-        );
+    private function generateStudentPassword(
+        string $initialName,
+        string $guardianMobile
+    ): string {
 
-        return $password;
+        // Initials
+        $letters = preg_replace('/[^A-Za-z]/', '', $initialName);
+        $initials = strtoupper(substr($letters, 0, 2));
+
+        if (strlen($initials) < 2) {
+            $initials = str_pad($initials, 2, 'X');
+        }
+
+        // Last 4 digits of mobile
+        $mobileDigits = preg_replace('/\D/', '', $guardianMobile);
+        $lastFour = substr($mobileDigits, -4);
+
+        // Random letters (Eg: Ed)
+        $randomLetters =
+            chr(random_int(65, 90)) .      // A-Z
+            chr(random_int(97, 122));      // a-z
+
+        return $initials . $lastFour . $randomLetters;
     }
     /**
      * Get default image URL based on gender
