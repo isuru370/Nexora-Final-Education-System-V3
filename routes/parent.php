@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\Parent\Attendance\StudentAttendanceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Parent\Auth\ParentAuthController;
+use App\Http\Controllers\API\Parent\ClassSchedule\ClassScheduleController;
 use App\Http\Controllers\API\Parent\Dashboard\DashboardController;
 use App\Http\Controllers\API\Parent\Exam\ExamController;
 use App\Http\Controllers\API\Parent\FCM\FcmTokenController;
@@ -102,6 +103,17 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/teachers', [
         TeacherController::class,
+        'index'
+    ]);
+
+            /*
+|--------------------------------------------------------------------------
+| Class Schedule
+|--------------------------------------------------------------------------
+*/
+
+    Route::post('/schedule', [
+        ClassScheduleController::class,
         'index'
     ]);
 });
