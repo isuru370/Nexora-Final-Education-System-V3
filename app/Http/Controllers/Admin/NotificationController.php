@@ -95,10 +95,6 @@ class NotificationController extends Controller
         $notification = Notification::with(['student', 'creator'])
             ->findOrFail($id);
 
-        // Mark as read if viewing
-        if (is_null($notification->read_at)) {
-            $notification->markAsRead();
-        }
 
         return view('admin.notifications.show', compact('notification'));
     }

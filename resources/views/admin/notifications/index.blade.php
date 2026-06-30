@@ -117,11 +117,13 @@
                 </div>
 
                 <div class="header-buttons">
+                    {{-- Send Notification --}}
                     <a href="{{ route('admin.notifications.create') }}" class="btn btn-primary custom-btn">
                         <i class="bi bi-plus-lg"></i>
                         Send Notification
                     </a>
 
+                    {{-- Mark All Read --}}
                     <form action="{{ route('admin.notifications.mark-all-read') }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-info custom-btn">
@@ -130,12 +132,28 @@
                         </button>
                     </form>
 
-                    <a href="{{ route('admin.notifications.export', request()->query()) }}" class="btn btn-success custom-btn">
+                    {{-- Device Tokens (NEW) --}}
+                    <a href="{{ route('admin.fcm-tokens.index') }}" class="btn btn-purple custom-btn">
+                        <i class="bi bi-phone"></i>
+                        Device Tokens
+                        @php
+                            $activeDeviceCount = App\Models\FcmToken::active()->count();
+                        @endphp
+                        @if ($activeDeviceCount > 0)
+                            <span class="badge bg-white text-dark ms-1">{{ $activeDeviceCount }}</span>
+                        @endif
+                    </a>
+
+                    {{-- Export --}}
+                    <a href="{{ route('admin.notifications.export', request()->query()) }}"
+                        class="btn btn-success custom-btn">
                         <i class="bi bi-file-earmark-excel-fill"></i>
                         Export
                     </a>
 
-                    <button type="button" class="btn btn-danger custom-btn" data-bs-toggle="modal" data-bs-target="#cleanupModal">
+                    {{-- Cleanup --}}
+                    <button type="button" class="btn btn-danger custom-btn" data-bs-toggle="modal"
+                        data-bs-target="#cleanupModal">
                         <i class="bi bi-trash-fill"></i>
                         Cleanup
                     </button>
@@ -143,14 +161,14 @@
             </div>
 
             {{-- ALERT --}}
-            @if(session('success'))
+            @if (session('success'))
                 <div class="alert alert-success custom-alert">
                     <i class="bi bi-check-circle-fill me-2"></i>
                     {{ session('success') }}
                 </div>
             @endif
 
-            @if(session('error'))
+            @if (session('error'))
                 <div class="alert alert-danger custom-alert">
                     <i class="bi bi-exclamation-circle-fill me-2"></i>
                     {{ session('error') }}
@@ -165,16 +183,16 @@
                             <div class="search-input-wrapper">
                                 <i class="bi bi-search"></i>
                                 <input type="text" name="search" class="form-control custom-input"
-                                    placeholder="Search by title, body, student..."
-                                    value="{{ request('search') }}">
+                                    placeholder="Search by title, body, student..." value="{{ request('search') }}">
                             </div>
                         </div>
 
                         <div class="col-lg-2">
                             <select name="status" class="form-select custom-input">
                                 <option value="">All Status</option>
-                                @foreach($statuses as $status)
-                                    <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
+                                @foreach ($statuses as $status)
+                                    <option value="{{ $status }}"
+                                        {{ request('status') == $status ? 'selected' : '' }}>
                                         {{ ucfirst($status) }}
                                     </option>
                                 @endforeach
@@ -184,7 +202,7 @@
                         <div class="col-lg-2">
                             <select name="type" class="form-select custom-input">
                                 <option value="">All Types</option>
-                                @foreach($types as $type)
+                                @foreach ($types as $type)
                                     <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
                                         {{ ucfirst($type) }}
                                     </option>
@@ -200,7 +218,8 @@
                         </div>
 
                         <div class="col-lg-2">
-                            <a href="{{ route('admin.notifications.index') }}" class="btn btn-light border w-100 custom-btn">
+                            <a href="{{ route('admin.notifications.index') }}"
+                                class="btn btn-light border w-100 custom-btn">
                                 Reset
                             </a>
                         </div>
@@ -208,12 +227,12 @@
 
                     <div class="row g-3 mt-2">
                         <div class="col-lg-3">
-                            <input type="date" name="date_from" class="form-control custom-input"
-                                placeholder="From Date" value="{{ request('date_from') }}">
+                            <input type="date" name="date_from" class="form-control custom-input" placeholder="From Date"
+                                value="{{ request('date_from') }}">
                         </div>
                         <div class="col-lg-3">
-                            <input type="date" name="date_to" class="form-control custom-input"
-                                placeholder="To Date" value="{{ request('date_to') }}">
+                            <input type="date" name="date_to" class="form-control custom-input" placeholder="To Date"
+                                value="{{ request('date_to') }}">
                         </div>
                         <div class="col-lg-6">
                             <small class="text-muted">Filter by date range</small>
@@ -246,7 +265,8 @@
 
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="user-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                                        <div class="user-avatar"
+                                            style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
                                             {{ strtoupper(substr($notification->student->initial_name ?? 'S', 0, 1)) }}
                                         </div>
 
@@ -269,7 +289,7 @@
                                         </a>
                                         <br>
                                         <small class="text-muted">{{ Str::limit($notification->body, 60) }}</small>
-                                        @if(is_null($notification->read_at))
+                                        @if (is_null($notification->read_at))
                                             <span class="badge bg-primary ms-1" style="font-size: 8px;">NEW</span>
                                         @endif
                                     </div>
@@ -289,21 +309,22 @@
                                             'processing' => 'info',
                                             'sent' => 'success',
                                             'failed' => 'danger',
-                                            'cancelled' => 'secondary'
+                                            'cancelled' => 'secondary',
                                         ];
                                         $statusIcons = [
                                             'pending' => 'bi-clock',
                                             'processing' => 'bi-arrow-repeat',
                                             'sent' => 'bi-check-circle',
                                             'failed' => 'bi-x-circle',
-                                            'cancelled' => 'bi-ban'
+                                            'cancelled' => 'bi-ban',
                                         ];
                                     @endphp
-                                    <span class="badge custom-badge status-badge bg-{{ $statusColors[$notification->status] ?? 'secondary' }}">
+                                    <span
+                                        class="badge custom-badge status-badge bg-{{ $statusColors[$notification->status] ?? 'secondary' }}">
                                         <i class="bi {{ $statusIcons[$notification->status] ?? 'bi-circle' }} me-1"></i>
                                         {{ $notification->status_label }}
                                     </span>
-                                    @if($notification->wasFailed() && $notification->error_message)
+                                    @if ($notification->wasFailed() && $notification->error_message)
                                         <br>
                                         <small class="text-danger" title="{{ $notification->error_message }}">
                                             <i class="bi bi-exclamation-triangle-fill"></i>
@@ -327,20 +348,20 @@
                                             <i class="bi bi-eye-fill"></i>
                                         </a>
 
-                                        @if($notification->isPending())
+                                        @if ($notification->isPending())
                                             <form action="{{ route('admin.notifications.cancel', $notification->id) }}"
-                                                  method="POST" class="d-inline">
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="action-btn cancel-btn"
-                                                        onclick="return confirm('Cancel this notification?')" title="Cancel">
+                                                    onclick="return confirm('Cancel this notification?')" title="Cancel">
                                                     <i class="bi bi-ban-fill"></i>
                                                 </button>
                                             </form>
                                         @endif
 
-                                        @if($notification->wasFailed() && $notification->canRetry())
+                                        @if ($notification->wasFailed() && $notification->canRetry())
                                             <form action="{{ route('admin.notifications.retry', $notification->id) }}"
-                                                  method="POST" class="d-inline">
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="action-btn retry-btn" title="Retry">
                                                     <i class="bi bi-arrow-repeat"></i>
@@ -348,9 +369,9 @@
                                             </form>
                                         @endif
 
-                                        @if(is_null($notification->read_at))
+                                        @if (is_null($notification->read_at))
                                             <form action="{{ route('admin.notifications.mark-read', $notification->id) }}"
-                                                  method="POST" class="d-inline">
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="action-btn read-btn" title="Mark as Read">
                                                     <i class="bi bi-check2-circle"></i>
@@ -358,13 +379,13 @@
                                             </form>
                                         @endif
 
-                                        @if(!$notification->wasSent())
+                                        @if (!$notification->wasSent())
                                             <form action="{{ route('admin.notifications.destroy', $notification->id) }}"
-                                                  method="POST" class="d-inline">
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="action-btn delete-btn"
-                                                        onclick="return confirm('Delete this notification?')" title="Delete">
+                                                    onclick="return confirm('Delete this notification?')" title="Delete">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </form>
@@ -414,8 +435,8 @@
                     <div class="modal-body">
                         <p>Delete notifications older than:</p>
                         <div class="form-group">
-                            <input type="number" name="days" class="form-control custom-input"
-                                value="30" min="1" max="365">
+                            <input type="number" name="days" class="form-control custom-input" value="30"
+                                min="1" max="365">
                             <small class="text-muted">Enter number of days (e.g., 30 for last 30 days)</small>
                         </div>
                         <div class="alert alert-danger mt-3">
@@ -424,7 +445,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light border custom-btn" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light border custom-btn"
+                            data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-danger custom-btn">
                             <i class="bi bi-trash-fill me-1"></i>
                             Delete
@@ -472,13 +494,33 @@
             flex-shrink: 0;
         }
 
-        .blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-        .green { background: linear-gradient(135deg, #10b981, #34d399); }
-        .orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-        .red { background: linear-gradient(135deg, #ef4444, #f87171); }
-        .purple { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
-        .teal { background: linear-gradient(135deg, #14b8a6, #2dd4bf); }
-        .pink { background: linear-gradient(135deg, #ec4899, #f472b6); }
+        .blue {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .green {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        .orange {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        }
+
+        .red {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
+
+        .purple {
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        }
+
+        .teal {
+            background: linear-gradient(135deg, #14b8a6, #2dd4bf);
+        }
+
+        .pink {
+            background: linear-gradient(135deg, #ec4899, #f472b6);
+        }
 
         .stats-card h3 {
             margin: 0;
@@ -537,7 +579,7 @@
 
         .custom-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         .custom-alert {
@@ -579,7 +621,7 @@
 
         .custom-input:focus {
             border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
 
         select.custom-input {
@@ -662,14 +704,45 @@
             gap: .3rem;
         }
 
-        .general-badge { background: #e0e7ff; color: #4338ca; }
-        .reminder-badge { background: #fef3c7; color: #d97706; }
-        .exam-badge { background: #dbeafe; color: #2563eb; }
-        .announcement-badge { background: #d1fae5; color: #065f46; }
-        .attendance-badge { background: #ede9fe; color: #6d28d9; }
-        .grade-badge { background: #fce4ec; color: #be185d; }
-        .payment-badge { background: #d1fae5; color: #065f46; }
-        .result-badge { background: #e0e7ff; color: #4338ca; }
+        .general-badge {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .reminder-badge {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .exam-badge {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .announcement-badge {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .attendance-badge {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .grade-badge {
+            background: #fce4ec;
+            color: #be185d;
+        }
+
+        .payment-badge {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .result-badge {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
 
         .status-badge {
             min-width: 80px;
@@ -701,12 +774,35 @@
             transform: translateY(-2px);
         }
 
-        .view-btn { background: #eff6ff; color: #2563eb; }
-        .edit-btn { background: #fef3c7; color: #d97706; }
-        .delete-btn { background: #fef2f2; color: #ef4444; }
-        .cancel-btn { background: #fef3c7; color: #d97706; }
-        .retry-btn { background: #d1fae5; color: #065f46; }
-        .read-btn { background: #e0e7ff; color: #4338ca; }
+        .view-btn {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .edit-btn {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .delete-btn {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .cancel-btn {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .retry-btn {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .read-btn {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
 
         .empty-state i {
             font-size: 3rem;
@@ -725,10 +821,33 @@
             color: #64748b;
         }
 
+        .btn-purple.custom-btn {
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+            color: #fff;
+        }
+
+        .btn-purple.custom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-purple.custom-btn .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
         /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 768px) {

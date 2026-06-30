@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\DailyReportController;
 use App\Http\Controllers\Admin\DatabaseBackupController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\ExtraIncomeController;
+use App\Http\Controllers\Admin\FcmTokenController;
 use App\Http\Controllers\Admin\ForgotPasswordController;
 use App\Http\Controllers\Admin\GradeController;
 use App\Http\Controllers\Admin\ImageUploadController;
@@ -1112,5 +1113,57 @@ Route::middleware([
                 // Export notifications
                 Route::get('/export', [NotificationController::class, 'export'])
                     ->name('export');
+            });
+
+        // ============================================
+        // FCM TOKEN ROUTES
+        // ============================================
+        Route::prefix('fcm-tokens')
+            ->name('fcm-tokens.')
+            ->group(function () {
+
+                // List all tokens
+                Route::get('/', [FcmTokenController::class, 'index'])
+                    ->name('index')
+                    ->middleware('permission:fcm-tokens.view');
+
+                // Show single token
+                Route::get('/{id}', [FcmTokenController::class, 'show'])
+                    ->name('show')
+                    ->middleware('permission:fcm-tokens.view');
+
+                // Student tokens
+                Route::get('/student/{studentId}', [FcmTokenController::class, 'studentTokens'])
+                    ->name('student')
+                    ->middleware('permission:fcm-tokens.view');
+
+                // Activate token
+                Route::post('/{id}/activate', [FcmTokenController::class, 'activate'])
+                    ->name('activate')
+                    ->middleware('permission:fcm-tokens.update');
+
+                // Deactivate token
+                Route::post('/{id}/deactivate', [FcmTokenController::class, 'deactivate'])
+                    ->name('deactivate')
+                    ->middleware('permission:fcm-tokens.update');
+
+                // Delete token
+                Route::delete('/{id}', [FcmTokenController::class, 'destroy'])
+                    ->name('destroy')
+                    ->middleware('permission:fcm-tokens.delete');
+
+                // Delete all inactive tokens
+                Route::delete('/inactive/delete', [FcmTokenController::class, 'deleteInactive'])
+                    ->name('delete-inactive')
+                    ->middleware('permission:fcm-tokens.delete');
+
+                // Export tokens
+                Route::get('/export', [FcmTokenController::class, 'export'])
+                    ->name('export')
+                    ->middleware('permission:fcm-tokens.view');
+
+                // Stats (AJAX)
+                Route::get('/stats', [FcmTokenController::class, 'stats'])
+                    ->name('stats');
             });
     });
