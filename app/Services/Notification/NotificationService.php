@@ -28,7 +28,8 @@ class NotificationService
             // Check if student has active tokens
             $hasTokens = FcmToken::where('student_id', $student->id)
                 ->where('is_active', true)
-                ->exists();
+                ->latest('created_at')
+                ->first();
 
             $notification = Notification::create([
                 'student_id' => $student->id,
@@ -142,7 +143,7 @@ class NotificationService
                     if ($hasTokens) {
                         SendNotificationJob::dispatch($notification->id)
                             ->onQueue('notifications');
-                        
+
                         $results['success'][] = [
                             'id' => $notification->id,
                             'student_id' => $student->id,
@@ -155,7 +156,6 @@ class NotificationService
                             'reason' => 'No active FCM token',
                         ];
                     }
-
                 } catch (\Exception $e) {
                     $results['failed'][] = [
                         'student_id' => $student->id,
@@ -238,7 +238,7 @@ class NotificationService
 
         // Increment retry count
         $notification->increment('retry_count');
-        
+
         // Reset status to pending
         $notification->update([
             'status' => NotificationStatus::PENDING,
@@ -398,7 +398,7 @@ class NotificationService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('title', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('body', 'like', '%' . $filters['search'] . '%');
+                    ->orWhere('body', 'like', '%' . $filters['search'] . '%');
             });
         }
 
