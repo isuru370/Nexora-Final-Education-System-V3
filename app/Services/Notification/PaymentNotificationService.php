@@ -117,7 +117,7 @@ class PaymentNotificationService
      */
     private function getTitle(): string
     {
-        return '✅ Payment Confirmed!';
+        return 'Payment Confirmed!';
     }
 
     /**
@@ -128,7 +128,7 @@ class PaymentNotificationService
         $data = $this->getPaymentData($payment);
 
         return sprintf(
-            "Dear %s,\n\nPayment of Rs. %s for %s has been received for %s.\n\n📚 Class: %s\n🎓 Grade: %s\n🧾 Receipt: %s\n\nThank you! 🙏",
+            "Dear %s,\n\nPayment of Rs. %s for %s has been received for %s.\n\n Class: %s\n Grade: %s\n Receipt: %s\n\nThank you!",
             $data['parent_name'],
             $data['amount'],
             $data['month'],
