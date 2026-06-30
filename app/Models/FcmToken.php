@@ -35,4 +35,84 @@ class FcmToken extends Model
     {
         return $this->belongsTo(Student::class);
     }
+
+    /**
+     * Scope: Active tokens.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope: Inactive tokens.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
+    }
+
+    /**
+     * Scope: Android devices.
+     */
+    public function scopeAndroid($query)
+    {
+        return $query->where('device_type', 'android');
+    }
+
+    /**
+     * Scope: iOS devices.
+     */
+    public function scopeIos($query)
+    {
+        return $query->where('device_type', 'ios');
+    }
+
+    /**
+     * Get device type label.
+     */
+    public function getDeviceTypeLabelAttribute(): string
+    {
+        return match ($this->device_type) {
+            'android' => 'Android',
+            'ios' => 'iOS',
+            default => 'Unknown',
+        };
+    }
+
+    /**
+     * Get status label.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->is_active ? 'Active' : 'Inactive';
+    }
+
+    /**
+     * Get status color.
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return $this->is_active ? 'success' : 'danger';
+    }
+
+    /**
+     * Mask token for display.
+     */
+    public function getMaskedTokenAttribute(): string
+    {
+        return substr($this->token, 0, 15) . '...' . substr($this->token, -6);
+    }
+
+    /**
+     * Get device icon.
+     */
+    public function getDeviceIconAttribute(): string
+    {
+        return match ($this->device_type) {
+            'android' => 'bi-phone',
+            'ios' => 'bi-apple',
+            default => 'bi-device',
+        };
+    }
 }

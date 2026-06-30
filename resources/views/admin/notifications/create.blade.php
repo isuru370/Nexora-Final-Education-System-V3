@@ -124,25 +124,6 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="bi bi-calendar-event text-primary me-1"></i>
-                                Schedule (Optional)
-                            </label>
-                            <div class="search-input-wrapper">
-                                <i class="bi bi-clock"></i>
-                                <input type="datetime-local" name="scheduled_at"
-                                    class="form-control custom-input @error('scheduled_at') is-invalid @enderror"
-                                    value="{{ old('scheduled_at') }}">
-                            </div>
-                            <small class="text-muted">Leave empty to send immediately</small>
-                            @error('scheduled_at')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
                     {{-- SUBMIT --}}
                     <div class="col-12">
                         <div class="form-actions">
