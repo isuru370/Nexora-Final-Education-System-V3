@@ -53,6 +53,28 @@
             @endif
         </div>
 
+        <!-- NOTIFICATION SECTION -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">NOTIFICATION</div>
+
+            @if (hasPermission('notification.view') || hasPermission('notification.create') || hasPermission('notification.delete'))
+                <div class="nav-item">
+                    <button type="button"
+                        class="nav-link-custom {{ request()->routeIs('admin.notifications*') ? 'active' : '' }}"
+                        data-route="admin.notifications" data-href="{{ route('admin.notifications.index') }}">
+                        <i class="bi bi-bell"></i>
+                        <span>Notifications</span>
+                        @php
+                            $unreadCount = App\Models\Notification::unread()->count();
+                        @endphp
+                        @if ($unreadCount > 0)
+                            <span class="badge badge-danger ml-auto">{{ $unreadCount }}</span>
+                        @endif
+                    </button>
+                </div>
+            @endif
+        </div>
+
         <!-- MANAGEMENT -->
         <div class="sidebar-section">
             <div class="sidebar-section-title">MANAGEMENT</div>

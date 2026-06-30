@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\InstitutePaymentReportController;
 use App\Http\Controllers\Admin\InstituteReportController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\MonthlyReportController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ReceiptController;
 use App\Http\Controllers\Admin\StudentIDCardController;
 use App\Http\Controllers\Admin\StudentImageController;
@@ -1058,4 +1059,58 @@ Route::middleware([
             '/receipts/export/pdf',
             [ReceiptController::class, 'exportPdf']
         )->name('receipts.export.pdf');
+
+        // Notification Routes
+        Route::prefix('notifications')
+            ->name('notifications.')
+            ->group(function () {
+
+                // List all notifications
+                Route::get('/', [NotificationController::class, 'index'])
+                    ->name('index');
+
+                // Create notification
+                Route::get('/create', [NotificationController::class, 'create'])
+                    ->name('create');
+
+                // Store notification
+                Route::post('/', [NotificationController::class, 'store'])
+                    ->name('store');
+
+                // Bulk send notification
+                Route::post('/bulk', [NotificationController::class, 'sendBulk'])
+                    ->name('bulk');
+
+                // Show single notification
+                Route::get('/{id}', [NotificationController::class, 'show'])
+                    ->name('show');
+
+                // Mark as read
+                Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])
+                    ->name('mark-read');
+
+                // Mark all as read
+                Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])
+                    ->name('mark-all-read');
+
+                // Retry failed notification
+                Route::post('/{id}/retry', [NotificationController::class, 'retry'])
+                    ->name('retry');
+
+                // Cancel notification
+                Route::post('/{id}/cancel', [NotificationController::class, 'cancel'])
+                    ->name('cancel');
+
+                // Delete notification
+                Route::delete('/{id}', [NotificationController::class, 'destroy'])
+                    ->name('destroy');
+
+                // Delete old notifications
+                Route::delete('/cleanup', [NotificationController::class, 'deleteOld'])
+                    ->name('cleanup');
+
+                // Export notifications
+                Route::get('/export', [NotificationController::class, 'export'])
+                    ->name('export');
+            });
     });
