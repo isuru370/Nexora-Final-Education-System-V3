@@ -31,74 +31,111 @@ class SendNotificationJob implements ShouldQueue
 
     public function handle(FirebaseNotificationService $firebaseService): void
     {
-        $notification = Notification::find($this->notificationId);
-
-        if (!$notification) {
-            Log::error('Notification not found', [
+        try {
+            Log::info('Job started', [
                 'notification_id' => $this->notificationId,
+                'attempt' => $this->attempts(),
             ]);
-            return;
-        }
 
-        // Check if already sent or cancelled
-        if ($notification->wasSent() || $notification->isCancelled()) {
-            Log::info('Notification already sent or cancelled', [
-                'notification_id' => $notification->id,
-                'status' => $notification->status,
-            ]);
-            return;
-        }
+            $notification = Notification::find($this->notificationId);
 
-        // Check if scheduled for later
-        if ($notification->isScheduled()) {
-            $delay = $notification->scheduled_at->diffInSeconds(now());
-            if ($delay > 0) {
-                // Re-dispatch with delay
-                self::dispatch($notification->id)
-                    ->onQueue('notifications')
-                    ->delay(now()->addSeconds($delay));
-                
-                Log::info('Notification re-dispatched for scheduled time', [
-                    'notification_id' => $notification->id,
-                    'scheduled_at' => $notification->scheduled_at,
-                    'delay_seconds' => $delay,
+            if (!$notification) {
+                Log::error('Notification not found', [
+                    'notification_id' => $this->notificationId,
                 ]);
                 return;
             }
-        }
 
-        // Check if student still has active tokens
-        $hasTokens = $notification->student->activeFcmTokens()->exists();
-        if (!$hasTokens) {
-            $notification->markAsFailed('No active FCM tokens at time of sending');
-            Log::warning('No active tokens for notification', [
+            Log::info('Notification found', [
                 'notification_id' => $notification->id,
                 'student_id' => $notification->student_id,
+                'status' => $notification->status,
             ]);
-            return;
-        }
 
-        Log::info('Processing notification job', [
-            'notification_id' => $notification->id,
-            'attempt' => $this->attempts(),
-            'student_id' => $notification->student_id,
-        ]);
+            // Check if already sent or cancelled
+            if ($notification->wasSent() || $notification->isCancelled()) {
+                Log::info('Notification already processed', [
+                    'notification_id' => $notification->id,
+                    'status' => $notification->status,
+                ]);
+                return;
+            }
 
-        $notification->markAsProcessing();
+            // Check if scheduled for later
+            if ($notification->isScheduled()) {
+                $delay = $notification->scheduled_at->diffInSeconds(now());
+                if ($delay > 0) {
+                    self::dispatch($notification->id)
+                        ->onQueue('notifications')
+                        ->delay(now()->addSeconds($delay));
+                    
+                    Log::info('Notification re-dispatched for scheduled time', [
+                        'notification_id' => $notification->id,
+                        'scheduled_at' => $notification->scheduled_at,
+                        'delay_seconds' => $delay,
+                    ]);
+                    return;
+                }
+            }
 
-        try {
+            // Check if student exists and has active tokens
+            try {
+                $student = $notification->student;
+                if (!$student) {
+                    $notification->markAsFailed('Student not found');
+                    Log::error('Student not found', [
+                        'notification_id' => $notification->id,
+                        'student_id' => $notification->student_id,
+                    ]);
+                    return;
+                }
+
+                // Check if student has active FCM tokens
+                $tokensCount = $student->activeFcmTokens()->count();
+                
+                Log::info('Active tokens check', [
+                    'notification_id' => $notification->id,
+                    'student_id' => $student->id,
+                    'tokens_count' => $tokensCount,
+                ]);
+
+                if ($tokensCount === 0) {
+                    $notification->markAsFailed('No active FCM tokens at time of sending');
+                    Log::warning('No active tokens for notification', [
+                        'notification_id' => $notification->id,
+                        'student_id' => $notification->student_id,
+                    ]);
+                    return;
+                }
+
+            } catch (\Exception $e) {
+                Log::error('Error checking student tokens', [
+                    'notification_id' => $notification->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                $notification->markAsFailed('Error checking student tokens: ' . $e->getMessage());
+                return;
+            }
+
+            $notification->markAsProcessing();
+
+            Log::info('Calling Firebase service', [
+                'notification_id' => $notification->id,
+            ]);
+
             $firebaseService->send($notification);
-            
+
             Log::info('Notification sent successfully', [
                 'notification_id' => $notification->id,
                 'student_id' => $notification->student_id,
             ]);
 
         } catch (\Exception $e) {
-            $notification->markAsFailed($e->getMessage());
-            Log::error('Notification job failed', [
-                'notification_id' => $notification->id,
+            Log::error('Job failed with exception', [
+                'notification_id' => $this->notificationId,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }
@@ -122,6 +159,7 @@ class SendNotificationJob implements ShouldQueue
             'notification_id' => $this->notificationId,
             'error' => $exception->getMessage(),
             'attempts' => $this->attempts(),
+            'trace' => $exception->getTraceAsString(),
         ]);
     }
 }
