@@ -39,13 +39,13 @@ class NotificationController extends Controller
                     'status_label' => \App\Enums\NotificationStatus::label($notification->status),
                     'scheduled_at' => $notification->scheduled_at,
                 ],
-            ], Response::HTTP_ACCEPTED);
+            ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            ]);
         } catch (\Exception $e) {
             Log::error('Notification send failed', [
                 'error' => $e->getMessage(),
@@ -56,7 +56,7 @@ class NotificationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send notification: ' . $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ]);
         }
     }
 

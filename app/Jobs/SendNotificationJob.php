@@ -120,16 +120,9 @@ class SendNotificationJob implements ShouldQueue
 
             $notification->markAsProcessing();
 
-            Log::info('Calling Firebase service', [
-                'notification_id' => $notification->id,
-            ]);
 
             $firebaseService->send($notification);
 
-            Log::info('Notification sent successfully', [
-                'notification_id' => $notification->id,
-                'student_id' => $notification->student_id,
-            ]);
 
         } catch (\Exception $e) {
             Log::error('Job failed with exception', [
