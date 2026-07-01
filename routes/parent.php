@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\Notification\NotificationController;
+
 use App\Http\Controllers\API\Parent\Attendance\StudentAttendanceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Parent\Auth\ParentAuthController;
