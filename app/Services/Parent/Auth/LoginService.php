@@ -2,6 +2,7 @@
 
 namespace App\Services\Parent\Auth;
 
+use App\Models\FcmToken;
 use App\Models\StudentPortalLogin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -105,5 +106,31 @@ class LoginService
         // Otherwise, prepend storage URL
         $baseUrl = config('app.url');
         return $baseUrl . '/storage/' . ltrim($imgUrl, '/');
+    }
+
+    public function logout(
+        int $studentId,
+        string $deviceId
+    ): array {
+
+        $token = FcmToken::where('student_id', $studentId)
+            ->where('device_id', $deviceId)
+            ->first();
+
+        if (!$token) {
+            return [
+                'status' => false,
+                'message' => 'Device not found.',
+            ];
+        }
+
+        $token->update([
+            'is_active' => false,
+        ]);
+
+        return [
+            'status' => true,
+            'message' => 'Logout successful.',
+        ];
     }
 }
