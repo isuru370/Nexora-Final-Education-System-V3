@@ -133,4 +133,39 @@ class LoginService
             'message' => 'Logout successful.',
         ];
     }
+
+    public function changePassword(array $data): array
+    {
+        $login = StudentPortalLogin::where(
+            'student_id',
+            $data['student_id']
+        )->first();
+
+        if (!$login) {
+            return [
+                'status' => false,
+                'message' => 'Student account not found.',
+            ];
+        }
+
+        if (!Hash::check(
+            $data['current_password'],
+            $login->password
+        )) {
+
+            return [
+                'status' => false,
+                'message' => 'Current password is incorrect.',
+            ];
+        }
+
+        $login->update([
+            'password' => $data['new_password'],
+        ]);
+
+        return [
+            'status' => true,
+            'message' => 'Password changed successfully.',
+        ];
+    }
 }

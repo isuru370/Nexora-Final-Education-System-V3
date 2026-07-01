@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/auth/logout', [ParentAuthController::class, 'logout']);
 
+    Route::post('/auth/change-password', [ParentAuthController::class, 'changePassword']);
+
     /*
     |--------------------------------------------------------------------------
     | Dashboard
@@ -98,30 +100,30 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-        // Get all notifications (paginated) - POST
-        Route::post('/notifications', [ParentNotificationController::class, 'index']);
+    // Get all notifications (paginated) - POST
+    Route::post('/notifications', [ParentNotificationController::class, 'index']);
 
-        // Get notification details - POST
-        Route::post('/notifications/{id}', [ParentNotificationController::class, 'show']);
+    // Get notification details - POST
+    Route::post('/notifications/{id}', [ParentNotificationController::class, 'show']);
 
-        // Get unread notifications - POST
-        Route::post('/notifications/unread', [ParentNotificationController::class, 'unread']);
+    // Get unread notifications - POST
+    Route::post('/notifications/unread', [ParentNotificationController::class, 'unread']);
 
-        // Get unread count - POST
-        Route::post('/notifications/unread/count', [ParentNotificationController::class, 'unreadCount']);
+    // Get unread count - POST
+    Route::post('/notifications/unread/count', [ParentNotificationController::class, 'unreadCount']);
 
-        // Mark as read - POST
-        Route::post('/notifications/{id}/read', [ParentNotificationController::class, 'markAsRead']);
+    // Mark as read - POST
+    Route::post('/notifications/{id}/read', [ParentNotificationController::class, 'markAsRead']);
 
-        // Mark all as read - POST
-        Route::post('/notifications/read-all', [ParentNotificationController::class, 'markAllAsRead']);
+    // Mark all as read - POST
+    Route::post('/notifications/read-all', [ParentNotificationController::class, 'markAllAsRead']);
 
-        // Delete notification - POST
-        Route::post('/notifications/{id}/delete', [ParentNotificationController::class, 'destroy']);
+    // Delete notification - POST
+    Route::post('/notifications/{id}/delete', [ParentNotificationController::class, 'destroy']);
 
-        // Delete all read notifications - POST
-        Route::post('/notifications/read/delete', [ParentNotificationController::class, 'deleteRead']);
+    // Delete all read notifications - POST
+    Route::post('/notifications/read/delete', [ParentNotificationController::class, 'deleteRead']);
 
-        // Get notification statistics - POST
-        Route::post('/notifications/stats', [ParentNotificationController::class, 'stats']);
+    // Get notification statistics - POST
+    Route::post('/notifications/stats', [ParentNotificationController::class, 'stats']);
 });
