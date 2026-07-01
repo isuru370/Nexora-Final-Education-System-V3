@@ -23,6 +23,8 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/auth/login', [ParentAuthController::class, 'login']);
 
+    Route::post('/auth/logout', [ParentAuthController::class, 'logout']);
+
     /*
     |--------------------------------------------------------------------------
     | Dashboard
