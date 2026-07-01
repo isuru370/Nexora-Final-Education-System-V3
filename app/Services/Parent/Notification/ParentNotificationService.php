@@ -3,11 +3,10 @@
 namespace App\Services\Parent\Notification;
 
 use App\Models\Notification;
-use App\Models\Student;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class ParentNotificationService
 {
@@ -248,8 +247,16 @@ class ParentNotificationService
      */
     public function formatNotificationList($notifications): array
     {
+        if ($notifications instanceof LengthAwarePaginator) {
+            $notifications = $notifications->getCollection();
+        }
+
+        if (is_array($notifications)) {
+            $notifications = collect($notifications);
+        }
+
         return $notifications->map(function ($notification) {
             return $this->formatNotification($notification);
-        })->toArray();
+        })->values()->toArray();
     }
 }

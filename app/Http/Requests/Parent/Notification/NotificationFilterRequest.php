@@ -17,6 +17,7 @@ class NotificationFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'student_id' => ['required', 'integer', 'exists:students,id'],
             'status' => ['nullable', 'string', Rule::in(NotificationStatus::all())],
             'type' => ['nullable', 'string', Rule::in(NotificationType::all())],
             'date_from' => ['nullable', 'date', 'date_format:Y-m-d'],
@@ -29,6 +30,8 @@ class NotificationFilterRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'student_id.required' => 'Student ID is required',
+            'student_id.exists' => 'Invalid student ID',
             'status.in' => 'Invalid status value',
             'type.in' => 'Invalid type value',
             'date_from.date' => 'Invalid from date format',

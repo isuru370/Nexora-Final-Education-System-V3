@@ -14,7 +14,18 @@ class NotificationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'student_id' => ['required', 'integer', 'exists:students,id'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'student_id.required' => 'Student ID is required',
+            'student_id.exists' => 'Invalid student ID',
+            'limit.min' => 'Limit must be at least 1',
+            'limit.max' => 'Limit cannot exceed 100',
         ];
     }
 }
