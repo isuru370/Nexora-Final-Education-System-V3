@@ -7,6 +7,7 @@ use App\Models\Exam;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\StudentClassEnrollment;
+use App\Models\Notification;
 use Carbon\Carbon;
 
 class DashboardService
@@ -45,6 +46,34 @@ class DashboardService
             ->where('student_id', $studentId)
             ->where('is_active', true)
             ->pluck('class_category_fee_id');
+
+        // ============================================
+        // 🚀 NOTIFICATION UNREAD COUNT
+        // ============================================
+        $unreadNotificationCount = Notification::query()
+            ->where('student_id', $studentId)
+            ->whereNull('read_at')
+            ->count();
+
+        // ============================================
+        // 📌 GET LATEST UNREAD NOTIFICATIONS (Optional)
+        // ============================================
+        $latestUnreadNotifications = Notification::query()
+            ->where('student_id', $studentId)
+            ->whereNull('read_at')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title,
+                    'body' => $notification->body,
+                    'type' => $notification->type,
+                    'created_at' => $notification->created_at->toISOString(),
+                ];
+            })
+            ->values();
 
         $todayClasses = ClassSchedule::query()
             ->select([
@@ -244,8 +273,6 @@ class DashboardService
             })
             ->values();
 
-
-
         return [
             'status' => true,
             'message' => 'Dashboard data fetched successfully',
@@ -265,6 +292,14 @@ class DashboardService
                 ],
 
                 'total_classes' => $totalClasses,
+
+                // ============================================
+                // 🚀 NOTIFICATION UNREAD COUNT
+                // ============================================
+                'notification' => [
+                    'unread_count' => $unreadNotificationCount,
+                    'latest_unread' => $latestUnreadNotifications,
+                ],
 
                 'today_classes' => $todayClasses,
 
