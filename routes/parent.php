@@ -8,6 +8,7 @@ use App\Http\Controllers\API\Parent\ClassSchedule\ClassScheduleController;
 use App\Http\Controllers\API\Parent\Dashboard\DashboardController;
 use App\Http\Controllers\API\Parent\Exam\ExamController;
 use App\Http\Controllers\API\Parent\FCM\FcmTokenController;
+use App\Http\Controllers\API\Parent\Notification\ParentNotificationController;
 use App\Http\Controllers\API\Parent\Payment\StudentPaymentController;
 use App\Http\Controllers\API\Parent\Result\ResultController;
 use App\Http\Controllers\API\Parent\Teacher\TeacherController;
@@ -16,7 +17,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Authentication
+    | Authentication (Public - No Auth Required)
     |--------------------------------------------------------------------------
     */
 
@@ -24,7 +25,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Dashboard
+    | Dashboard (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -32,7 +33,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Firebase Cloud Messaging
+    | Firebase Cloud Messaging (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -43,7 +44,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Attendance
+    | Attendance (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -51,7 +52,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Payment
+    | Payment (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -59,7 +60,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Exam
+    | Exam (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -67,7 +68,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Result
+    | Result (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -75,7 +76,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Teacher Details
+    | Teacher Details (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -83,7 +84,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Class Schedule
+    | Class Schedule (No Auth)
     |--------------------------------------------------------------------------
     */
 
@@ -91,7 +92,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Notifications (Using NotificationController)
+    | Admin Notifications (Send, Manage) - No Auth
     |--------------------------------------------------------------------------
     */
 
@@ -119,4 +120,51 @@ Route::prefix('v1')->group(function () {
         Route::get('/stats', [NotificationController::class, 'stats']);
         Route::delete('/cleanup', [NotificationController::class, 'deleteOld']);
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🚀 PARENT NOTIFICATIONS (No Auth)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('/parent/notifications')
+        ->name('parent.notifications.')
+        ->group(function () {
+
+            // Get all notifications (paginated)
+            Route::get('/', [ParentNotificationController::class, 'index'])
+                ->name('index');
+
+            // Get notification details
+            Route::get('/{id}', [ParentNotificationController::class, 'show'])
+                ->name('show');
+
+            // Get unread notifications
+            Route::get('/unread', [ParentNotificationController::class, 'unread'])
+                ->name('unread');
+
+            // Get unread count
+            Route::get('/unread/count', [ParentNotificationController::class, 'unreadCount'])
+                ->name('unread-count');
+
+            // Mark as read
+            Route::post('/{id}/read', [ParentNotificationController::class, 'markAsRead'])
+                ->name('mark-read');
+
+            // Mark all as read
+            Route::post('/read-all', [ParentNotificationController::class, 'markAllAsRead'])
+                ->name('mark-all-read');
+
+            // Delete notification
+            Route::delete('/{id}', [ParentNotificationController::class, 'destroy'])
+                ->name('destroy');
+
+            // Delete all read notifications
+            Route::delete('/read/delete', [ParentNotificationController::class, 'deleteRead'])
+                ->name('delete-read');
+
+            // Get notification statistics
+            Route::get('/stats', [ParentNotificationController::class, 'stats'])
+                ->name('stats');
+        });
 });
