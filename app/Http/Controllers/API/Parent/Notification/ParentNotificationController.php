@@ -20,15 +20,14 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Get all notifications
+     * Get all notifications (POST)
      */
     public function index(NotificationFilterRequest $request): JsonResponse
     {
         try {
-            // ✅ Get student_id from request (not from auth)
+            // ✅ Get student_id from request body
             $studentId = $request->input('student_id');
 
-            // If no student_id provided, return error
             if (!$studentId) {
                 return response()->json([
                     'success' => false,
@@ -77,12 +76,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Get notification details
+     * Get notification details (POST)
      */
     public function show(NotificationRequest $request, int $id): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -124,12 +122,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Get unread notifications
+     * Get unread notifications (POST)
      */
     public function unread(NotificationRequest $request): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -168,12 +165,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Get unread count
+     * Get unread count (POST)
      */
     public function unreadCount(NotificationRequest $request): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -206,12 +202,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Mark notification as read
+     * Mark notification as read (POST)
      */
     public function markAsRead(NotificationRequest $request, int $id): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -249,12 +244,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Mark all notifications as read
+     * Mark all notifications as read (POST)
      */
     public function markAllAsRead(NotificationRequest $request): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -287,12 +281,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Delete notification
+     * Delete notification (POST)
      */
     public function destroy(NotificationRequest $request, int $id): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -330,12 +323,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Delete all read notifications
+     * Delete all read notifications (POST)
      */
     public function deleteRead(NotificationRequest $request): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {
@@ -368,12 +360,11 @@ class ParentNotificationController extends Controller
     }
 
     /**
-     * Get notification statistics
+     * Get notification statistics (POST)
      */
     public function stats(NotificationRequest $request): JsonResponse
     {
         try {
-            // ✅ Get student_id from request
             $studentId = $request->input('student_id');
 
             if (!$studentId) {

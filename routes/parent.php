@@ -17,7 +17,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Authentication (Public - No Auth Required)
+    | Authentication
     |--------------------------------------------------------------------------
     */
 
@@ -25,7 +25,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Dashboard (No Auth)
+    | Dashboard
     |--------------------------------------------------------------------------
     */
 
@@ -33,7 +33,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Firebase Cloud Messaging (No Auth)
+    | Firebase Cloud Messaging
     |--------------------------------------------------------------------------
     */
 
@@ -44,7 +44,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Attendance (No Auth)
+    | Attendance
     |--------------------------------------------------------------------------
     */
 
@@ -52,7 +52,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Payment (No Auth)
+    | Payment
     |--------------------------------------------------------------------------
     */
 
@@ -60,7 +60,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Exam (No Auth)
+    | Exam
     |--------------------------------------------------------------------------
     */
 
@@ -68,7 +68,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Result (No Auth)
+    | Result
     |--------------------------------------------------------------------------
     */
 
@@ -76,7 +76,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Teacher Details (No Auth)
+    | Teacher Details
     |--------------------------------------------------------------------------
     */
 
@@ -84,7 +84,7 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Class Schedule (No Auth)
+    | Class Schedule
     |--------------------------------------------------------------------------
     */
 
@@ -92,79 +92,34 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Notifications (Send, Manage) - No Auth
+    | 🚀 PARENT NOTIFICATIONS
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('/notifications')->group(function () {
-        // Send notifications
-        Route::post('/send', [NotificationController::class, 'send']);
-        Route::post('/send-now', [NotificationController::class, 'sendNow']);
-        Route::post('/bulk', [NotificationController::class, 'sendBulk']);
-        Route::post('/send-to-all', [NotificationController::class, 'sendToAll']);
-        Route::post('/send-to-grade/{grade}', [NotificationController::class, 'sendToGrade']);
+        // Get all notifications (paginated) - POST
+        Route::post('/notifications', [ParentNotificationController::class, 'index']);
 
-        // Get notification status
-        Route::get('/{id}/status', [NotificationController::class, 'status']);
+        // Get notification details - POST
+        Route::post('/notifications/{id}', [ParentNotificationController::class, 'show']);
 
-        // Manage notifications
-        Route::post('/{id}/retry', [NotificationController::class, 'retry']);
-        Route::post('/{id}/cancel', [NotificationController::class, 'cancel']);
-        Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+        // Get unread notifications - POST
+        Route::post('/notifications/unread', [ParentNotificationController::class, 'unread']);
 
-        // List and filter
-        Route::get('/', [NotificationController::class, 'index']);
-        Route::get('/student/{studentId}/history', [NotificationController::class, 'history']);
+        // Get unread count - POST
+        Route::post('/notifications/unread/count', [ParentNotificationController::class, 'unreadCount']);
 
-        // Stats and maintenance
-        Route::get('/stats', [NotificationController::class, 'stats']);
-        Route::delete('/cleanup', [NotificationController::class, 'deleteOld']);
-    });
+        // Mark as read - POST
+        Route::post('/notifications/{id}/read', [ParentNotificationController::class, 'markAsRead']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🚀 PARENT NOTIFICATIONS (No Auth)
-    |--------------------------------------------------------------------------
-    */
+        // Mark all as read - POST
+        Route::post('/notifications/read-all', [ParentNotificationController::class, 'markAllAsRead']);
 
-    Route::prefix('/parent/notifications')
-        ->name('parent.notifications.')
-        ->group(function () {
+        // Delete notification - POST
+        Route::post('/notifications/{id}/delete', [ParentNotificationController::class, 'destroy']);
 
-            // Get all notifications (paginated)
-            Route::get('/', [ParentNotificationController::class, 'index'])
-                ->name('index');
+        // Delete all read notifications - POST
+        Route::post('/notifications/read/delete', [ParentNotificationController::class, 'deleteRead']);
 
-            // Get notification details
-            Route::get('/{id}', [ParentNotificationController::class, 'show'])
-                ->name('show');
-
-            // Get unread notifications
-            Route::get('/unread', [ParentNotificationController::class, 'unread'])
-                ->name('unread');
-
-            // Get unread count
-            Route::get('/unread/count', [ParentNotificationController::class, 'unreadCount'])
-                ->name('unread-count');
-
-            // Mark as read
-            Route::post('/{id}/read', [ParentNotificationController::class, 'markAsRead'])
-                ->name('mark-read');
-
-            // Mark all as read
-            Route::post('/read-all', [ParentNotificationController::class, 'markAllAsRead'])
-                ->name('mark-all-read');
-
-            // Delete notification
-            Route::delete('/{id}', [ParentNotificationController::class, 'destroy'])
-                ->name('destroy');
-
-            // Delete all read notifications
-            Route::delete('/read/delete', [ParentNotificationController::class, 'deleteRead'])
-                ->name('delete-read');
-
-            // Get notification statistics
-            Route::get('/stats', [ParentNotificationController::class, 'stats'])
-                ->name('stats');
-        });
+        // Get notification statistics - POST
+        Route::post('/notifications/stats', [ParentNotificationController::class, 'stats']);
 });
