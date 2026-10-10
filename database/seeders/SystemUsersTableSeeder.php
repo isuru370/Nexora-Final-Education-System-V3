@@ -14,8 +14,8 @@ class SystemUsersTableSeeder extends Seeder
             [
                 'custom_id' => 'ADM001',
                 'full_name' => 'System Administrator',
-                'email' => 'admin@nexorait.lk',
-                'password' => 'Admin@123',
+                'email' => '',
+                'password' => '',
                 'mobile' => '0711234567',
                 'nic' => '123456789V',
                 'bday' => '1985-01-15',
@@ -38,7 +38,7 @@ class SystemUsersTableSeeder extends Seeder
                 ['email' => $admin['email']],
                 [
                     'name' => $admin['full_name'],
-                    'password' => Hash::make($admin['password']),
+                    'password' => Hash::make($admin['']),
                     'user_type_id' => $adminTypeId,
                     'is_active' => true,
                     'email_verified_at' => now(),
